@@ -141,7 +141,7 @@ Future<List<User>> getAllUsers() async {
     }
   }
 
-  static Future<bool> login(String email, String password) async {
+  static Future<Map<String, dynamic>?> login(String email, String password) async {
     try {
       // Format JSON yang benar sesuai dengan yang diterima API
       var body = json.encode({
@@ -181,12 +181,12 @@ Future<List<User>> getAllUsers() async {
           }
         }
         
-        return true;
+        return data['user'];
       }
-      return false;
+      return null;
     } catch(e) {
       print('Login error: $e');
-      return false;
+      return null;
     }
   }
 

@@ -1,6 +1,8 @@
+
 import 'package:flutter/material.dart';
 import 'package:rom_app/services/auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class UserLoginScreen extends StatefulWidget {
   const UserLoginScreen({super.key});
@@ -22,12 +24,22 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
       setState(() => _isLoading = true);
 
       try {
-        bool success = await AuthService.login(_email, _password);
-        if (success) {
+        final userData = await AuthService.login(_email, _password);
+        if (userData != null) {
           SharedPreferences prefs = await SharedPreferences.getInstance();
-          String? role = prefs.getString('role');
-          if (role == 'admin') {
-            if (mounted) Navigator.pushReplacementNamed(context, '/admin/dashboard_screen');
+          await prefs.setString('user_data', json.encode({
+            'id': userData['id'],
+            'name': userData['name'],
+            'email': userData['email'],
+            'password': _password, // Selalu ambil dari input user
+            'photo': userData['photo'] ?? '',
+            'role': userData['role'],
+            'createdAt': userData['createdAt'],
+          }));
+          await prefs.setString('role', userData['role']);
+
+          if (userData['role'] == 'admin') {
+            if (mounted) Navigator.pushReplacementNamed(context, '/admin/room_management_screen');
           } else {
             if (mounted) Navigator.pushReplacementNamed(context, '/user/home');
           }
@@ -47,6 +59,16 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
       } finally {
         if (mounted) setState(() => _isLoading = false);
       }
+    }
+  }
+
+  // Fungsi logout
+  Future<void> _logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('user_data');
+    await prefs.remove('role');
+    if (mounted) {
+      Navigator.pushReplacementNamed(context, '/user/login');
     }
   }
 
@@ -163,9 +185,7 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                        onPressed: () {
-                         
-                        },
+                        onPressed: () {},
                         style: TextButton.styleFrom(
                           padding: EdgeInsets.zero,
                           minimumSize: const Size(0, 0),
@@ -268,6 +288,11 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
                         ),
                       ),
                     ),
+                    // Tombol logout (hanya contoh, bisa dipanggil dari menu/settings)
+                    // ElevatedButton(
+                    //   onPressed: _logout,
+                    //   child: const Text("Logout"),
+                    // ),
                   ],
                 ),
               ),
@@ -278,5 +303,3 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
     );
   }
 }
-
-

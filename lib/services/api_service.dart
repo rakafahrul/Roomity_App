@@ -9,6 +9,9 @@ import 'package:rom_app/models/approval.dart';
 import 'package:rom_app/models/photo_usage.dart';
 // import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+// import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+
 
 class ApiService {
   static const String baseUrl = 'https://localhost:7143/api';
@@ -34,20 +37,20 @@ class ApiService {
     }
   }
 
-  Future<void> uploadPhoto(int bookingId, String photoUrl) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/photo_usage'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'booking_id': bookingId,
-        'photo_url': photoUrl,
-      }),
-    );
+  // Future<void> uploadPhoto(int bookingId, String photoUrl) async {
+  //   final response = await http.post(
+  //     Uri.parse('$baseUrl/photo_usage'),
+  //     headers: {'Content-Type': 'application/json'},
+  //     body: json.encode({
+  //       'booking_id': bookingId,
+  //       'photo_url': photoUrl,
+  //     }),
+  //   );
     
-    if (response.statusCode != 201) {
-      throw Exception('Failed to upload photo. Status: ${response.statusCode}');
-    }
-  }
+  //   if (response.statusCode != 201) {
+  //     throw Exception('Failed to upload photo. Status: ${response.statusCode}');
+  //   }
+  // }
 
   Future<void> deletePhoto(int photoId) async {
     final response = await http.delete(
@@ -256,33 +259,131 @@ class ApiService {
     }
   }
 
-  // Create booking
-  static Future<bool> createBooking(Booking booking) async {
-    var body = json.encode({
-      'user_id': booking.userId,
-      'room_id': booking.roomId,
-      'booking_date': booking.bookingDate.toIso8601String(),
-      'start_time': booking.startTime,
-      'end_time': booking.endTime,
-      'purpose': booking.purpose,
-      'status': booking.status,
-    });
+  // Create booking - final attempt
+  static Future<bool> createBooking({
+    required int userId,
+    required int roomId,
+    required DateTime bookingDate,
+    required String startTime,
+    required String endTime,
+    required String purpose,
+    required String status,
+    String? locationGps,
+    String? roomPhotoUrl,
+  }) async {
+    final bookingData = {
+      "RoomId": roomId,
+      "UserId": userId,
+      "BookingDate": bookingDate.toIso8601String(),
+      "StartTime": startTime,
+      "EndTime": endTime,
+      "Purpose": purpose,
+      "Status": status,
+      "CheckinTime": null,
+      "CheckoutTime": null,
+      "LocationGps": locationGps ?? "",
+      "IsPresent": false,
+      "RoomPhotoUrl": roomPhotoUrl ?? "",
+      "CreatedAt": DateTime.now().toIso8601String(),
+      "Photos": []
+    };
 
-    var response = await http.post(
+    final response = await http.post(
       Uri.parse('$baseUrl/bookings'),
       headers: {'Content-Type': 'application/json'},
-      body: body,
+      body: json.encode(bookingData),
     );
 
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
+    return response.statusCode == 201;
+  }
+ 
+  //Metode batu sesuai dengan format swagger
+  static Future<bool> createBookingSwagger(int userId, int roomId, DateTime bookingDate, String purpose, String startTime, String endTime) async {
+    try {
+      var bookingData = {
+        "id": 0,
+        "roomId": roomId,
+        "userId": userId,
+        "bookingDate": bookingDate.toIso8601String(),
+        "startTime": startTime,
+        "endTime": endTime,
+        "purpose": purpose,
+        "status": "pending",
+        "checkinTime": null,
+        "checkoutTime": null,
+        "locationGps": "",
+        "isPresent": false,
+        "roomPhotoUrl": "",
+        "createdAt": DateTime.now().toIso8601String(),
+        "photos": [],
+       };
+
+       print("Booking Data: ${json.encode(bookingData)}");
+
+       var response = await http.post(
+        Uri.parse('$baseUrl/bookings'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: json.encode(bookingData),
+       );
+       print('Response status: ${response.statusCode}');
+       print('Response body: ${response.body}');
+       return response.statusCode == 201;
+    } catch (e) {
+      print('Error creating booking: $e');
+      return false;
+    }
+  }
+
+  // Booking dengan PascalCase
+  static Future<bool> createBookingPascalCase(Map<String, dynamic> bookingData) async {
+    try {
+      var response = await http.post(
+        Uri.parse('$baseUrl/bookings'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(bookingData),
+      );
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+      return response.statusCode == 201;
+    } catch (e) {
+      print('Error creating booking: $e');
+      return false;
+    }
+  }
+
+  static Future<bool> createBookingSimple(Map<String, dynamic> bookingData) async {
+    final url = Uri.parse('$baseUrl/bookings');
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(bookingData),
+    );
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
     return response.statusCode == 201;
   }
 
   // Fetch bookings
   static Future<List<Booking>> getBookings() async {
     var response = await http.get(Uri.parse('$baseUrl/bookings'));
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
     if (response.statusCode == 200) {
-      var bookingsJson = json.decode(response.body) as List;
-      return bookingsJson
+      var bookingsJson = json.decode(response.body);
+      // Handle root $values
+      List<dynamic> dataList = [];
+      if (bookingsJson is Map && bookingsJson.containsKey('\$values')) {
+        dataList = bookingsJson['\$values'];
+      } else if (bookingsJson is List) {
+        dataList = bookingsJson;
+      }
+      return dataList
           .map((bookingJson) => Booking.fromJson(bookingJson))
           .toList();
     } else {
@@ -347,6 +448,10 @@ class ApiService {
   // Checkout
   static Future<bool> checkout(int bookingId, String photoUrl) async {
     var body = json.encode({'photo_url': photoUrl});
+    // var body = json.encode({
+    //   'photo_before_url': photoBeforeUrl,
+    //   'photo_after_url': photoAfterUrl,
+    // });
 
     var response = await http.put(
       Uri.parse('$baseUrl/bookings/$bookingId/checkout'),
@@ -356,5 +461,61 @@ class ApiService {
 
     return response.statusCode == 200;
   }
+
+  // Check-in (Konfirmasi Kehadiran)
+  static Future<void> confirmAttendance(int bookingId, String locationGps,) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/bookings/$bookingId/checkin'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'locationGps': locationGps}),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Gagal konfirmasi kehadiran');
+    }
+  }
+
+  // Check-out (Pertanggungjawaban)
+  static Future<void> checkoutBooking(int bookingId, String photoUrl) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/bookings/$bookingId/checkout'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'photoUrl': photoUrl}),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Gagal melakukan pertanggungjawaban');
+    }
+  }
+
+  // Upload foto before/after (misal endpoint POST)
+  static Future<String> uploadPhoto(int bookingId, XFile photo, {String type = 'before'}) async {
+    final uri = Uri.parse('$baseUrl/bookings/$bookingId/photos');
+    var request = http.MultipartRequest('POST', uri)
+      ..fields['type'] = type
+      ..files.add(await http.MultipartFile.fromPath('photo', photo.path));
+    final response = await request.send();
+    if (response.statusCode == 200) {
+      final respStr = await response.stream.bytesToString();
+      final jsonResp = jsonDecode(respStr);
+      return jsonResp['photoUrl']; // Ganti sesuai response API
+    }
+    throw Exception('Gagal upload foto');
+  }
+
+  static Future<void> uploadPertanggungjawaban({
+    required int bookingId,
+    required XFile beforePhoto,
+    required XFile afterPhoto,
+  }) async {
+    final uri = Uri.parse('$baseUrl/bookings/$bookingId/pertanggungjawaban');
+    var request = http.MultipartRequest('POST', uri)
+      ..fields['bookingId'] = bookingId.toString()
+      ..files.add(await http.MultipartFile.fromPath('before', beforePhoto.path))
+      ..files.add(await http.MultipartFile.fromPath('after', afterPhoto.path));
+    final response = await request.send();
+    if (response.statusCode != 200) {
+      throw Exception('Gagal upload pertanggungjawaban');
+    }
+  }
+
 
 }

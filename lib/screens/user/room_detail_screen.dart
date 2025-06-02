@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:rom_app/models/room.dart';
+import 'package:rom_app/services/api_service.dart';
+import 'package:rom_app/screens/user/room_booking.dart';
 
 class RoomDetailScreen extends StatelessWidget {
   final Room room;
   const RoomDetailScreen({super.key, required this.room});
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +60,20 @@ class RoomDetailScreen extends StatelessWidget {
                   'Kapasitas: ${room.capacity} Orang',
                   style: const TextStyle(fontSize: 15, color: Colors.black87),
                 ),
+                SizedBox(height: 6),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: room.facilities.map((f) => Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Chip(
+                        label: Text(f, style: TextStyle(color: Colors.white, fontSize: 12)),
+                        backgroundColor: Colors.blueGrey,
+                        padding: EdgeInsets.zero,
+                      ),
+                    )).toList(),
+                  ),
+                ),
                 const SizedBox(height: 24),
                 const Text(
                   'Deskripsi',
@@ -70,6 +89,22 @@ class RoomDetailScreen extends StatelessWidget {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => RoomBookingScreen(roomId: room.id,
+                            roomName: room.name,
+                            roomCapacity: room.capacity,
+                            roomLocation: room.location,
+                            roomDescription: room.description,
+                            roomPhotoUrl: room.photoUrl,
+                            roomCreatedAt: room.createdAt,
+                            roomFacilities: room.facilities,
+                          ),
+                        ),
+                      );
+                      
+                      // Navigator.pushNamed(context, '/user/room_booking');
                       // Aksi pinjam, bisa diarahkan ke halaman booking
                     },
                     style: ElevatedButton.styleFrom(
@@ -78,8 +113,9 @@ class RoomDetailScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(16),
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 16),
+                    
                     ),
-                    child: const Text('Pinjam', style: TextStyle(fontSize: 16)),
+                    child: const Text('Pinjam', selectionColor: Colors.white,style: TextStyle(fontSize: 16)),
                   ),
                 ),
               ],

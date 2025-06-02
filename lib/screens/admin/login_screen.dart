@@ -16,8 +16,8 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
 
   void _submit() async {
     if (_formKey.currentState!.validate()) {
-      bool success = await AuthService.login(_email, _password);
-      if (success) {
+      final userData = await AuthService.login(_email, _password);
+      if (userData != null && userData['role'] == 'admin') {
         Navigator.pushReplacementNamed(context, '/admin/dashboard');
       } else {
         Fluttertoast.showToast(msg: 'Login failed');

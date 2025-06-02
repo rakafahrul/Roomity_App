@@ -122,6 +122,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                           location: room.location,
                           capacity: '${room.capacity} Orang',
                           imageUrl: room.photoUrl,
+                          facilities: room.facilities,
                         ),
                       );
                     },
@@ -141,6 +142,7 @@ class RoomCard extends StatelessWidget {
   final String location;
   final String capacity;
   final String imageUrl;
+  final List<String> facilities;
 
   const RoomCard({
     super.key,
@@ -148,6 +150,7 @@ class RoomCard extends StatelessWidget {
     required this.location,
     required this.capacity,
     required this.imageUrl,
+    required this.facilities,
   });
 
   @override

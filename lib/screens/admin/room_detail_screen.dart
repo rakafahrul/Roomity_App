@@ -78,7 +78,8 @@ class _AdminRoomDetailScreenState extends State<AdminRoomDetailScreen> {
           description: _description,
           capacity: _capacity,
           status: _status, // Tambahkan status
-          photoUrl: widget.room.photoUrl, // Assuming imageUrl is not editable
+          photoUrl: widget.room.photoUrl, 
+          facilities: widget.room.facilities, 
           createdAt: widget.room.createdAt,
         );
         

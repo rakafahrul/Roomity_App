@@ -22,6 +22,7 @@ class _UserCheckinScreenState extends State<UserCheckinScreen> {
 
     try {
       bool success = await ApiService.checkin(widget.bookingId, _locationGps);
+      
       if (success) {
         Fluttertoast.showToast(msg: 'Check-in successful');
         Navigator.pop(context);
