@@ -4,8 +4,8 @@ class Approval {
   final int stage;
   final String status;
   final String note;
-  final int approvedBy;
   final DateTime approvedAt;
+  final String? approverName;
 
   Approval({
     required this.id,
@@ -13,19 +13,37 @@ class Approval {
     required this.stage,
     required this.status,
     required this.note,
-    required this.approvedBy,
     required this.approvedAt,
+    this.approverName,
   });
+
+  // Getter untuk kompatibilitas dengan UI lama
+  String get approver => approverName ?? 'Admin';
+  DateTime get date => approvedAt;
 
   factory Approval.fromJson(Map<String, dynamic> json) {
     return Approval(
-      id: json['id'],
-      bookingId: json['booking_id'],
-      stage: json['stage'],
-      status: json['status'],
-      note: json['note'],
-      approvedBy: json['approved_by'],
-      approvedAt: DateTime.parse(json['approved_at']),
+      id: json['id'] ?? 0,
+      bookingId: json['bookingId'] ?? 0,
+      stage: json['stage'] ?? 1,
+      status: json['status'] ?? 'approved',
+      note: json['note'] ?? '',
+      approvedAt: json['approvedAt'] != null 
+          ? DateTime.parse(json['approvedAt'])
+          : DateTime.now(),
+      approverName: json['approverName'] ?? json['approver'],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'bookingId': bookingId,
+      'stage': stage,
+      'status': status,
+      'note': note,
+      'approvedAt': approvedAt.toIso8601String(),
+      'approverName': approverName,
+    };
   }
 }

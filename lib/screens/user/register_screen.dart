@@ -24,7 +24,7 @@ class _UserRegisterScreenState extends State<UserRegisterScreen> {
       setState(() => _isLoading = true);
 
       try {
-        bool success = await AuthService.register(_name, _email, _password, 'user');
+        bool success = await AuthService.register(_name, _email, _password, 'admin');
         if (success) {
           Fluttertoast.showToast(msg: 'Registrasi berhasil, silakan login');
           if (mounted) Navigator.pop(context);

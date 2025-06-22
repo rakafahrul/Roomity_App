@@ -1,9 +1,110 @@
+// class Booking {
+//   final int id;
+//   final int userId;
+//   final int roomId;
+//   final String roomName;
+//   final String location;
+//   final DateTime bookingDate;
+//   final String startTime;
+//   final String endTime;
+//   final String purpose;
+//   final String status;
+//   final DateTime? checkinTime;
+//   final DateTime? checkoutTime;
+//   final String locationGps;
+//   final bool isPresent;
+//   final String? roomPhotoUrl;
+//   final List<dynamic> photos;
+  
+
+//   Booking({
+//     required this.id,
+//     required this.userId,
+//     required this.roomId,
+//     required this.roomName,
+//     required this.location,
+//     required this.bookingDate,
+//     required this.startTime,
+//     required this.endTime,
+//     required this.purpose,
+//     required this.status,
+//     required this.checkinTime,
+//     required this.checkoutTime,
+//     required this.locationGps,
+//     required this.isPresent,
+//     this.roomPhotoUrl,
+//     this.photos = const [],
+//   });
+
+//   factory Booking.fromJson(Map<String, dynamic> json) {
+//     // Handle photos with $values
+//     List<dynamic> photosList = [];
+//     var photosJson = json['photos'];
+//     if (photosJson != null) {
+//       if (photosJson is Map && photosJson.containsKey('\$values')) {
+//         photosList = photosJson['\$values'] ?? [];
+//       } else if (photosJson is List) {
+//         photosList = photosJson;
+//       }
+//     }
+
+//     return Booking(
+//       id: json['id'],
+//       userId: json['user']?['id'] ?? json['userId'] ?? 0,
+//       roomId: json['room']?['id'] ?? json['roomId'] ?? 0,
+//       roomName: json['roomName'] ?? json['room']?['name'] ?? 'Co-Working Space', 
+//       location: json['location'] ?? json['room']?['location'] ?? 'Gedung 24A, Ilmu Komputer',
+//       bookingDate: DateTime.parse(json['bookingDate']),
+//       startTime: json['startTime'],
+//       endTime: json['endTime'],
+//       purpose: json['purpose'],
+//       status: json['status'],
+//       checkinTime: json['checkinTime'] != null && json['checkinTime'] != ""
+//           ? DateTime.tryParse(json['checkinTime'] ?? "")
+//           : null,
+//       checkoutTime: json['checkoutTime'] != null && json['checkoutTime'] != ""
+//           ? DateTime.tryParse(json['checkoutTime'] ?? "")
+//           : null,
+//       locationGps: json['locationGps'] ?? '',
+//       isPresent: json['isPresent'] ?? false,
+//       roomPhotoUrl: json['roomPhotoUrl'] ?? json['room']?['photoUrl'],
+//       photos: photosList,
+//     );
+//   }
+
+//   Map<String, dynamic> toJson() {
+//     return {
+//       'id': id,
+//       'userId': userId,
+//       'roomId': roomId,
+//       'roomName': roomName,
+//       'location': location,
+//       'bookingDate': bookingDate.toIso8601String(),
+//       'startTime': startTime,
+//       'endTime': endTime,
+//       'purpose': purpose,
+//       'status': status,
+//       'checkinTime': checkinTime?.toIso8601String(),
+//       'checkoutTime': checkoutTime?.toIso8601String(),
+//       'locationGps': locationGps,
+//       'isPresent': isPresent,
+//       'roomPhotoUrl': roomPhotoUrl ?? '',
+//       'photos': photos,
+//     };
+//   }
+// }
+
+
+
+
+
+
+
 class Booking {
   final int id;
-  final int userId;
   final int roomId;
   final String roomName;
-  final String location;
+  final int userId;
   final DateTime bookingDate;
   final String startTime;
   final String endTime;
@@ -11,73 +112,123 @@ class Booking {
   final String status;
   final DateTime? checkinTime;
   final DateTime? checkoutTime;
-  final String locationGps;
+  final String? locationGps;
   final bool isPresent;
   final String? roomPhotoUrl;
-  final List<dynamic> photos;
+  final DateTime createdAt;
+  final List<String> photoUrls;
+  
+  // Properties tambahan yang mungkin ada di response API
+  final String? userName;
+  final String? userDisplayName;
+  final String? adminNotes;
+  final String? notes;
+  final String? afterPhotoUrl;
+  final String? roomPhotoAfterUrl;
+  final DateTime? updatedAt;
+  final DateTime? modifiedAt;
 
   Booking({
     required this.id,
-    required this.userId,
     required this.roomId,
     required this.roomName,
-    required this.location,
+    required this.userId,
     required this.bookingDate,
     required this.startTime,
     required this.endTime,
     required this.purpose,
     required this.status,
-    required this.checkinTime,
-    required this.checkoutTime,
-    required this.locationGps,
+    this.checkinTime,
+    this.checkoutTime,
+    this.locationGps,
     required this.isPresent,
     this.roomPhotoUrl,
-    this.photos = const [],
+    required this.createdAt,
+    required this.photoUrls,
+    this.userName,
+    this.userDisplayName,
+    this.adminNotes,
+    this.notes,
+    this.afterPhotoUrl,
+    this.roomPhotoAfterUrl,
+    this.updatedAt,
+    this.modifiedAt,
   });
 
   factory Booking.fromJson(Map<String, dynamic> json) {
-    // Handle photos with $values
-    List<dynamic> photosList = [];
-    var photosJson = json['photos'];
-    if (photosJson != null) {
-      if (photosJson is Map && photosJson.containsKey('\$values')) {
-        photosList = photosJson['\$values'] ?? [];
-      } else if (photosJson is List) {
-        photosList = photosJson;
+    // Parse photo URLs
+    List<String> photoUrls = [];
+    if (json['photos'] != null) {
+      if (json['photos'] is List) {
+        photoUrls = List<String>.from(json['photos']);
+      } else if (json['photos'] is Map && json['photos']['\$values'] != null) {
+        photoUrls = List<String>.from(json['photos']['\$values']);
+      }
+    } else if (json['photoUrls'] != null) {
+      if (json['photoUrls'] is List) {
+        photoUrls = List<String>.from(json['photoUrls']);
       }
     }
 
+    // Parse dates
+    DateTime parseDateTime(dynamic value) {
+      if (value == null) return DateTime.now();
+      if (value is String) {
+        try {
+          return DateTime.parse(value);
+        } catch (e) {
+          return DateTime.now();
+        }
+      }
+      return DateTime.now();
+    }
+
+    DateTime? parseOptionalDateTime(dynamic value) {
+      if (value == null) return null;
+      if (value is String && value.isNotEmpty) {
+        try {
+          return DateTime.parse(value);
+        } catch (e) {
+          return null;
+        }
+      }
+      return null;
+    }
+
     return Booking(
-      id: json['id'],
-      userId: json['user']?['id'] ?? json['userId'] ?? 0,
-      roomId: json['room']?['id'] ?? json['roomId'] ?? 0,
-      roomName: json['roomName'] ?? json['room']?['name'] ?? 'Co-Working Space', // fallback
-      location: json['location'] ?? json['room']?['location'] ?? 'Gedung 24A, Ilmu Komputer',
-      bookingDate: DateTime.parse(json['bookingDate']),
-      startTime: json['startTime'],
-      endTime: json['endTime'],
-      purpose: json['purpose'],
-      status: json['status'],
-      checkinTime: json['checkinTime'] != null && json['checkinTime'] != ""
-          ? DateTime.tryParse(json['checkinTime'] ?? "")
-          : null,
-      checkoutTime: json['checkoutTime'] != null && json['checkoutTime'] != ""
-          ? DateTime.tryParse(json['checkoutTime'] ?? "")
-          : null,
-      locationGps: json['locationGps'] ?? '',
-      isPresent: json['isPresent'] ?? false,
-      roomPhotoUrl: json['roomPhotoUrl'] ?? json['room']?['photoUrl'],
-      photos: photosList,
+      id: json['id'] ?? 0,
+      roomId: json['roomId'] ?? json['room_id'] ?? 0,
+      roomName: json['roomName'] ?? json['room_name'] ?? 'Unknown Room',
+      userId: json['userId'] ?? json['user_id'] ?? 0,
+      bookingDate: parseDateTime(json['bookingDate'] ?? json['booking_date']),
+      startTime: json['startTime'] ?? json['start_time'] ?? '',
+      endTime: json['endTime'] ?? json['end_time'] ?? '',
+      purpose: json['purpose'] ?? '',
+      status: json['status'] ?? 'pending',
+      checkinTime: parseOptionalDateTime(json['checkinTime'] ?? json['checkin_time']),
+      checkoutTime: parseOptionalDateTime(json['checkoutTime'] ?? json['checkout_time']),
+      locationGps: json['locationGps'] ?? json['location_gps'],
+      isPresent: json['isPresent'] ?? json['is_present'] ?? false,
+      roomPhotoUrl: json['roomPhotoUrl'] ?? json['room_photo_url'],
+      createdAt: parseDateTime(json['createdAt'] ?? json['created_at']),
+      photoUrls: photoUrls,
+      userName: json['userName'] ?? json['user_name'] ?? json['userDisplayName'],
+      userDisplayName: json['userDisplayName'] ?? json['user_display_name'],
+      adminNotes: json['adminNotes'] ?? json['admin_notes'] ?? json['notes'],
+      notes: json['notes'],
+      afterPhotoUrl: json['afterPhotoUrl'] ?? json['after_photo_url'] ?? json['roomPhotoAfterUrl'],
+      roomPhotoAfterUrl: json['roomPhotoAfterUrl'] ?? json['room_photo_after_url'],
+      updatedAt: parseOptionalDateTime(json['updatedAt'] ?? json['updated_at']),
+      modifiedAt: parseOptionalDateTime(json['modifiedAt'] ?? json['modified_at']),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'userId': userId,
       'roomId': roomId,
       'roomName': roomName,
-      'location': location,
+      'userId': userId,
       'bookingDate': bookingDate.toIso8601String(),
       'startTime': startTime,
       'endTime': endTime,
@@ -87,8 +238,72 @@ class Booking {
       'checkoutTime': checkoutTime?.toIso8601String(),
       'locationGps': locationGps,
       'isPresent': isPresent,
-      'roomPhotoUrl': roomPhotoUrl ?? '',
-      'photos': photos,
+      'roomPhotoUrl': roomPhotoUrl,
+      'createdAt': createdAt.toIso8601String(),
+      'photos': photoUrls,
+      'photoUrls': photoUrls,
+      'userName': userName,
+      'userDisplayName': userDisplayName,
+      'adminNotes': adminNotes,
+      'notes': notes,
+      'afterPhotoUrl': afterPhotoUrl,
+      'roomPhotoAfterUrl': roomPhotoAfterUrl,
+      'updatedAt': updatedAt?.toIso8601String(),
+      'modifiedAt': modifiedAt?.toIso8601String(),
     };
+  }
+
+  Booking copyWith({
+    int? id,
+    int? roomId,
+    String? roomName,
+    int? userId,
+    DateTime? bookingDate,
+    String? startTime,
+    String? endTime,
+    String? purpose,
+    String? status,
+    DateTime? checkinTime,
+    DateTime? checkoutTime,
+    String? locationGps,
+    bool? isPresent,
+    String? roomPhotoUrl,
+    DateTime? createdAt,
+    List<String>? photoUrls,
+    String? userName,
+    String? userDisplayName,
+    String? adminNotes,
+    String? notes,
+    String? afterPhotoUrl,
+    String? roomPhotoAfterUrl,
+    DateTime? updatedAt,
+    DateTime? modifiedAt,
+  }) {
+    return Booking(
+      id: id ?? this.id,
+      roomId: roomId ?? this.roomId,
+      roomName: roomName ?? this.roomName,
+      userId: userId ?? this.userId,
+      bookingDate: bookingDate ?? this.bookingDate,
+      startTime: startTime ?? this.startTime,
+      endTime: endTime ?? this.endTime,
+      purpose: purpose ?? this.purpose,
+      status: status ?? this.status,
+      checkinTime: checkinTime ?? this.checkinTime,
+      checkoutTime: checkoutTime ?? this.checkoutTime,
+      locationGps: locationGps ?? this.locationGps,
+      isPresent: isPresent ?? this.isPresent,
+      roomPhotoUrl: roomPhotoUrl ?? this.roomPhotoUrl,
+      createdAt: createdAt ?? this.createdAt,
+      photoUrls: photoUrls ?? this.photoUrls,
+      userName: userName ?? this.userName,
+      userDisplayName: userDisplayName ?? this.userDisplayName,
+      adminNotes: adminNotes ?? this.adminNotes,
+      notes: notes ?? this.notes,
+      afterPhotoUrl: afterPhotoUrl ?? this.afterPhotoUrl,
+      roomPhotoAfterUrl: roomPhotoAfterUrl ?? this.roomPhotoAfterUrl,
+      updatedAt: updatedAt ?? this.updatedAt,
+      modifiedAt: modifiedAt ?? this.modifiedAt,
+    );
   }
 }

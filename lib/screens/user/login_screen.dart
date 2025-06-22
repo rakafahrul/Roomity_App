@@ -39,7 +39,7 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
           await prefs.setString('role', userData['role']);
 
           if (userData['role'] == 'admin') {
-            if (mounted) Navigator.pushReplacementNamed(context, '/admin/room_management_screen');
+            if (mounted) Navigator.pushReplacementNamed(context, '/admin/dashboard_screen');
           } else {
             if (mounted) Navigator.pushReplacementNamed(context, '/user/home');
           }

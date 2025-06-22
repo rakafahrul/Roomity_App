@@ -31,11 +31,11 @@ class NavBar extends StatelessWidget {
       onTap: (i) {
         // Ganti navigasi sesuai kebutuhan
         if (i == 0) {
-          Navigator.pushReplacementNamed(context, '/user/home');
+          Navigator.pushReplacementNamed(context, '/admin/dashboard_screen');
         } else if (i == 1) {
-          Navigator.pushReplacementNamed(context, '/user/peminjaman');
+          Navigator.pushReplacementNamed(context, '/admin/booking_approval_screen');
         } else if (i == 2) {
-          Navigator.pushReplacementNamed(context, '/user/profile_screen');
+          Navigator.pushReplacementNamed(context, '/admin/profile_screen');
         }
       },
     );

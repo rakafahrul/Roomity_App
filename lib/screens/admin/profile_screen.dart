@@ -1,18 +1,20 @@
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:rom_app/services/auth_service.dart';
 import 'package:rom_app/models/user.dart';
+import 'package:rom_app/services/auth_service.dart';
+import 'package:rom_app/screens/admin/navbar_admin.dart';
 
-class UserProfilScreen extends StatefulWidget {
-  const UserProfilScreen({super.key});
+class AdminProfilScreen extends StatefulWidget {
+  const AdminProfilScreen({super.key});
 
   @override
-  State<UserProfilScreen> createState() => _UserProfilScreenState();
+  _AdminProfilScreenState createState() => _AdminProfilScreenState();
 }
 
-class _UserProfilScreenState extends State<UserProfilScreen> {
+class _AdminProfilScreenState extends State<AdminProfilScreen> {
   User? _user;
   bool _loading = true;
   final AuthService _authService = AuthService();
@@ -45,9 +47,17 @@ class _UserProfilScreenState extends State<UserProfilScreen> {
         setState(() {
           _user = _user!.copyWith(photo: url);
         });
-        Fluttertoast.showToast(msg: 'Foto profil diperbarui');
+        Fluttertoast.showToast(
+          msg: 'Foto profil berhasil diperbarui',
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+        );
       } catch (e) {
-        Fluttertoast.showToast(msg: 'Gagal upload foto');
+        Fluttertoast.showToast(
+          msg: 'Gagal upload foto',
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
         print("Upload failed: $e");
       }
     }
@@ -63,7 +73,7 @@ class _UserProfilScreenState extends State<UserProfilScreen> {
   void _openEditProfile() async {
     final updated = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => EditProfileScreen(user: _user!)),
+      MaterialPageRoute(builder: (_) => AdminEditProfileScreen(user: _user!)),
     );
     if (updated == true) {
       _fetchCurrentUser();
@@ -82,6 +92,7 @@ class _UserProfilScreenState extends State<UserProfilScreen> {
         body: Center(child: Text("Gagal memuat profil")),
       );
     }
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profil', style: TextStyle(color: Colors.black)),
@@ -103,7 +114,7 @@ class _UserProfilScreenState extends State<UserProfilScreen> {
                   backgroundColor: Colors.grey[200],
                   backgroundImage: _user!.photo.isNotEmpty
                       ? NetworkImage(_user!.photo)
-                      : const NetworkImage("https://ui-avatars.com/api/?name=User"),
+                      : const NetworkImage("https://ui-avatars.com/api/?name=Admin"),
                 ),
                 Positioned(
                   bottom: 0,
@@ -156,7 +167,7 @@ class _UserProfilScreenState extends State<UserProfilScreen> {
               horizontalTitleGap: 0,
             ),
             ListTile(
-              leading: const Icon(Icons.shield_outlined, color: Color(0xFF192965)),
+              leading: const Icon(Icons.logout, color: Colors.red),
               title: const Text('Logout',
                   style: TextStyle(fontWeight: FontWeight.w600, color: Colors.red)),
               onTap: _logout,
@@ -165,30 +176,21 @@ class _UserProfilScreenState extends State<UserProfilScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 2,
-        onTap: (i) {
-          if (i == 0) Navigator.pushReplacementNamed(context, '/user/home');
-          if (i == 1) Navigator.pushReplacementNamed(context, '/user/peminjaman');
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.assignment_outlined), label: 'Peminjaman'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
-      ),
+      bottomNavigationBar: const NavBar(currentIndex: 2),
     );
   }
 }
 
-class EditProfileScreen extends StatefulWidget {
+// Edit Profile Screen untuk Admin
+class AdminEditProfileScreen extends StatefulWidget {
   final User user;
-  const EditProfileScreen({super.key, required this.user});
+  const AdminEditProfileScreen({super.key, required this.user});
+  
   @override
-  State<EditProfileScreen> createState() => _EditProfileScreenState();
+  State<AdminEditProfileScreen> createState() => _AdminEditProfileScreenState();
 }
 
-class _EditProfileScreenState extends State<EditProfileScreen> {
+class _AdminEditProfileScreenState extends State<AdminEditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   late String _name;
   late String _email;

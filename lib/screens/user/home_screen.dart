@@ -1,3 +1,5 @@
+
+
 import 'package:flutter/material.dart';
 import 'package:rom_app/models/room.dart';
 import 'package:rom_app/services/api_service.dart';
@@ -18,6 +20,146 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
   void initState() {
     super.initState();
     _roomsFuture = ApiService.getRooms();
+  }
+
+  // Widget untuk menampilkan gambar ruangan dengan fallback ke default
+  Widget _buildRoomImage(String imageUrl) {
+    return Image.network(
+      imageUrl,
+      height: 180,
+      width: double.infinity,
+      fit: BoxFit.cover,
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return Container(
+          height: 180,
+          color: Colors.grey[200],
+          child: const Center(
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: Color(0xFF0A3573),
+            ),
+          ),
+        );
+      },
+      errorBuilder: (context, error, stackTrace) {
+        // Jika gagal load dari network, gunakan gambar default dari assets
+        return Image.asset(
+          'assets/images/default.jpeg',
+          height: 180,
+          width: double.infinity,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            // Jika default.png juga gagal, tampilkan placeholder
+            return _buildDefaultRoomPlaceholder();
+          },
+        );
+      },
+    );
+  }
+
+  // Widget placeholder jika semua gambar gagal dimuat
+  Widget _buildDefaultRoomPlaceholder() {
+    return Container(
+      height: 180,
+      width: double.infinity,
+      color: Colors.grey[100],
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Simple room illustration using icons
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                width: 80,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey[400]!, width: 2),
+                ),
+              ),
+              // Table
+              Container(
+                width: 40,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: Colors.brown[300],
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              // Chairs
+              Positioned(
+                left: 15,
+                top: 12,
+                child: Container(
+                  width: 8,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[600],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Positioned(
+                right: 15,
+                top: 12,
+                child: Container(
+                  width: 8,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[600],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 15,
+                bottom: 12,
+                child: Container(
+                  width: 8,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[600],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Positioned(
+                right: 15,
+                bottom: 12,
+                child: Container(
+                  width: 8,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[600],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Ruang Meeting',
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            'Default',
+            style: TextStyle(
+              color: Colors.grey[500],
+              fontSize: 10,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -84,7 +226,6 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
             ),
             const SizedBox(height: 12),
             // Grid Ruangan
-
             Expanded(
               child: FutureBuilder<List<Room>>(
                 future: _roomsFuture,
@@ -94,8 +235,29 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                   } else if (snapshot.hasError) {
                     return Center(child: Text('Gagal memuat data: ${snapshot.error}'));
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return Center(child: Text('Tidak ada ruangan'));
+                    return const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.meeting_room_outlined,
+                            size: 80,
+                            color: Colors.grey,
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            'Tidak ada ruangan tersedia',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
                   }
+
                   final rooms = snapshot.data!;
                   return GridView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -123,6 +285,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                           capacity: '${room.capacity} Orang',
                           imageUrl: room.photoUrl,
                           facilities: room.facilities,
+                          buildRoomImage: _buildRoomImage, // Pass the method
                         ),
                       );
                     },
@@ -143,6 +306,7 @@ class RoomCard extends StatelessWidget {
   final String capacity;
   final String imageUrl;
   final List<String> facilities;
+  final Widget Function(String) buildRoomImage; // Add this parameter
 
   const RoomCard({
     super.key,
@@ -151,66 +315,129 @@ class RoomCard extends StatelessWidget {
     required this.capacity,
     required this.imageUrl,
     required this.facilities,
+    required this.buildRoomImage, // Add this parameter
   });
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(18),
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+      ),
+      clipBehavior: Clip.antiAlias,
       child: Stack(
         children: [
-          // Gambar ruangan
-          Image.network(
-            imageUrl,
-            height: 180,
-            width: double.infinity,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => Container(
-              height: 180,
-              color: Colors.grey[300],
-              child: const Icon(Icons.broken_image, size: 48),
-            ),
-          ),
-          // Overlay gradient
-          Container(
-            height: 180,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.black.withOpacity(0.5), Colors.transparent],
-                begin: Alignment.bottomCenter,
-                end: Alignment.topCenter,
+          // Gambar ruangan dengan fallback
+          buildRoomImage(imageUrl),
+          
+          // Overlay gradient untuk readability text
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: 100,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black.withOpacity(0.7),
+                  ],
+                ),
               ),
             ),
           ),
+          
           // Info ruangan
           Positioned(
-            left: 16,
-            bottom: 16,
-            right: 16,
+            left: 12,
+            bottom: 12,
+            right: 12,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   name,
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
-                    fontSize: 18,
+                    fontSize: 16,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                Text(
-                  location,
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                  ),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.location_on,
+                      color: Colors.white70,
+                      size: 12,
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        location,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
-                Text(
-                  capacity,
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 13,
-                  ),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.people,
+                      color: Colors.white70,
+                      size: 12,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      capacity,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const Spacer(),
+                    // Fasilitas count indicator
+                    if (facilities.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.star,
+                              color: Colors.white70,
+                              size: 10,
+                            ),
+                            const SizedBox(width: 2),
+                            Text(
+                              '${facilities.length}',
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
                 ),
               ],
             ),

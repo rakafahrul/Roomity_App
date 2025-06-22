@@ -25,7 +25,7 @@ class User {
       password: json['password'],
       photo: json['photo'] ?? '',
       role: json['role'],
-      createdAt: DateTime.parse(json['created_at']),
+      createdAt: DateTime.parse(json['createdAt'] ?? json['created_at']),
     );
   }
 
@@ -39,5 +39,25 @@ class User {
       'role': role,
       'createdAt': createdAt.toIso8601String(),
     };
+  }
+
+  User copyWith({
+    int? id,
+    String? name,
+    String? email,
+    String? password,
+    String? photo,
+    String? role,
+    DateTime? createdAt,
+  }) {
+    return User(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      password: password ?? this.password,
+      photo: photo ?? this.photo,
+      role: role ?? this.role,
+      createdAt: createdAt ?? this.createdAt,
+    );
   }
 }
