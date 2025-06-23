@@ -50,7 +50,7 @@ class AdminRoomDetailScreen extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Simple room illustration using icons
+          
           Stack(
             alignment: Alignment.center,
             children: [
@@ -63,7 +63,7 @@ class AdminRoomDetailScreen extends StatelessWidget {
                   border: Border.all(color: Colors.grey[400]!, width: 2),
                 ),
               ),
-              // Table
+              
               Container(
                 width: 60,
                 height: 30,
@@ -72,7 +72,7 @@ class AdminRoomDetailScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(6),
                 ),
               ),
-              // Chairs
+              
               Positioned(
                 left: 20,
                 top: 15,
@@ -210,7 +210,7 @@ class AdminRoomDetailScreen extends StatelessWidget {
   }
 
   void _deleteRoom(BuildContext context) async {
-    // Show confirmation dialog
+    
     final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
@@ -284,7 +284,7 @@ class AdminRoomDetailScreen extends StatelessWidget {
           backgroundColor: Colors.green,
           textColor: Colors.white,
         );
-        Navigator.pop(context, true); // Return true to indicate changes were made
+        Navigator.pop(context, true); 
       } catch (e) {
         Fluttertoast.showToast(
           msg: 'Gagal menghapus ruangan: $e',
@@ -304,7 +304,7 @@ class AdminRoomDetailScreen extends StatelessWidget {
     );
     
     if (result == true) {
-      Navigator.pop(context, true); // Return true to indicate changes were made
+      Navigator.pop(context, true); 
     }
   }
 
@@ -331,11 +331,11 @@ class AdminRoomDetailScreen extends StatelessWidget {
       ),
       body: ListView(
         children: [
-          // Gambar ruangan dengan overlay status
+          
           Stack(
             children: [
               _buildRoomImage(room.photoUrl),
-              // Status badge di pojok kanan atas
+              
               Positioned(
                 top: 16,
                 right: 16,
@@ -362,7 +362,7 @@ class AdminRoomDetailScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              // Admin badge
+              
               Positioned(
                 top: 16,
                 left: 16,
@@ -401,7 +401,7 @@ class AdminRoomDetailScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header Info Card
+                
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
@@ -420,7 +420,7 @@ class AdminRoomDetailScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Room ID
+                      
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
@@ -438,7 +438,7 @@ class AdminRoomDetailScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       
-                      // Nama ruangan
+                      
                       Text(
                         room.name,
                         style: const TextStyle(
@@ -449,7 +449,7 @@ class AdminRoomDetailScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       
-                      // Lokasi
+                      
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
@@ -479,7 +479,7 @@ class AdminRoomDetailScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                       
-                      // Kapasitas
+                      
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
@@ -510,7 +510,7 @@ class AdminRoomDetailScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
 
-                // Fasilitas Card
+                
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
@@ -631,7 +631,7 @@ class AdminRoomDetailScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
 
-                // Deskripsi Card
+                
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
@@ -698,7 +698,7 @@ class AdminRoomDetailScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 32),
 
-                // Admin Action Buttons
+                
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),

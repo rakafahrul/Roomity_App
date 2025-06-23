@@ -29,7 +29,7 @@ class NavBar extends StatelessWidget {
       ],
       currentIndex: currentIndex,
       onTap: (i) {
-        // Ganti navigasi sesuai kebutuhan
+        
         if (i == 0) {
           Navigator.pushReplacementNamed(context, '/user/home');
         } else if (i == 1) {

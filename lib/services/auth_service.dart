@@ -23,25 +23,25 @@ class AuthService {
     return null;
   }
 
-  // Metode untuk memeriksa apakah user sudah login
+  
   static Future<bool> isLoggedIn() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString('token') != null;
   }
 
-  // Metode untuk memeriksa role user
+  
   static Future<String?> getUserRole() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString('role');
   }
 
-  // Method untuk mendapatkan token dari SharedPreferences
+  
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('token');
   }
 
-  // Method untuk mendapatkan semua pengguna (hanya untuk admin)
+  
   Future<List<User>> getAllUsers() async {
     final token = await _getToken();
     
@@ -76,7 +76,7 @@ class AuthService {
     }
   }
 
-  // Method untuk mendapatkan user yang sedang login
+  
   Future<User> getCurrentUser() async {
     final token = await _getToken();
     
@@ -208,13 +208,13 @@ class AuthService {
         var data = json.decode(response.body);
         SharedPreferences prefs = await SharedPreferences.getInstance();
         
-        // Simpan token JWT
+        
         await prefs.setString('token', data['token']);
         
-        // Simpan role user
+        
         await prefs.setString('role', data['role']);
         
-        // Simpan data user
+        
         if (data['user'] != null) {
           await prefs.setString('user_data', json.encode(data['user']));
           await prefs.setString('user_id', data['user']['id'].toString());

@@ -18,19 +18,16 @@ class ApiService {
   static const String baseUrl = 'https://apiroom-production.up.railway.app/api';
   static const Duration timeoutDuration = Duration(seconds: 30);
   
-  //  headers
   static Map<String, String> get defaultHeaders => {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   };
 
-  // token helper
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('token');
   }
 
-  // auth headers
   Future<Map<String, String>> _getAuthHeaders() async {
     final token = await _getToken();
     final headers = Map<String, String>.from(defaultHeaders);
@@ -40,7 +37,6 @@ class ApiService {
     return headers;
   }
 
-  //  error handling
   static Exception handleError(dynamic error, int? statusCode, String? responseBody) {
     if (statusCode != null) {
       switch (statusCode) {
@@ -61,7 +57,6 @@ class ApiService {
     return Exception('Network error: $error');
   }
 
-  // ✅ Logging methods
   static void logRequest(String method, String url, {Map<String, String>? headers, String? body}) {
     print('🌐 === $method REQUEST ===');
     print('📍 URL: $url');
@@ -91,13 +86,10 @@ class ApiService {
     try {
       logRequest('POST', '$baseUrl/photo_usage');
       
-      // 1. Upload gambar ke storage/server terlebih dahulu
       final photoUrl = await _uploadImageToServer(photoFile);
 
-      // 2. Kirim data ke endpoint /api/photo_usage
       final uri = Uri.parse('$baseUrl/photo_usage');
 
-      // 3. Siapkan payload sesuai spesifikasi endpoint
       final payload = {
         'photoId': 0,
         'photoUrl': photoUrl,
@@ -128,8 +120,6 @@ class ApiService {
       final bytes = await file.readAsBytes();
       final fileName = 'photo_${DateTime.now().millisecondsSinceEpoch}.jpg';
       
-      // For demo purposes, return a placeholder URL
-      // In production, implement actual file upload to your storage
       return 'https://apiroom-production.up.railway.app/storage/$fileName';
     } catch (e) {
       print('❌ Error uploading image: $e');
@@ -210,7 +200,6 @@ class ApiService {
     try {
       print('📤 Trying alternative upload method...');
       
-      // ✅ First, get booking details to include required info
       final bookingDetails = await getBookingById(bookingId);
       
       var request = http.MultipartRequest(
@@ -223,7 +212,6 @@ class ApiService {
         'Accept': 'application/json',
       });
       
-      // ✅ Include all booking-related data
       request.fields.addAll({
         'BookingId': bookingId.toString(),
         'UserId': bookingDetails.userId.toString(),
@@ -266,7 +254,6 @@ class ApiService {
   }) async {
     print('🎯 SMART UPLOAD: Starting for booking $bookingId');
     
-    // Strategy 1: Try main multipart upload
     try {
       print('📤 STRATEGY 1: Multipart upload');
       await uploadPertanggungjawaban(bookingId: bookingId, photo: photo);
@@ -276,7 +263,6 @@ class ApiService {
       print('❌ STRATEGY 1 FAILED: $e');
     }
     
-    // Strategy 2: Try simple base64 upload
     try {
       print('📤 STRATEGY 2: Base64 upload');
       await uploadPertanggungjawabanSimple(bookingId: bookingId, photo: photo);
@@ -286,7 +272,6 @@ class ApiService {
       print('❌ STRATEGY 2 FAILED: $e');
     }
     
-    // Strategy 3: Try with different content type
     try {
       print('📤 STRATEGY 3: Alternative content type');
       
@@ -319,7 +304,6 @@ class ApiService {
       print('❌ STRATEGY 3 FAILED: $e');
     }
     
-    // All strategies failed
     throw Exception('All upload strategies failed. Please check your backend endpoint configuration.');
   }
   static Future<void> uploadPertanggungjawabanSimple({
@@ -329,7 +313,6 @@ class ApiService {
     try {
       print('🔄 DEBUG: Trying simple upload method...');
       
-      // ✅ Convert to base64 as fallback
       final bytes = await File(photo.path).readAsBytes();
       final base64Image = base64Encode(bytes);
       
@@ -363,27 +346,9 @@ class ApiService {
       throw e;
     }
   }
-  // static Future<bool> uploadPertanggungjawaban({
-  //   required int bookingId,
-  //   required XFile photo,
-  // }) async {
-  //   try {
-  //     await uploadPhotoUsage(
-  //       bookingId: bookingId,
-  //       photoFile: photo,
-  //     );
-
-  //     await updateBookingStatus(bookingId, 'done');
-  //     return true;
-  //   } catch (e) {
-  //     print('❌ Error in uploadPertanggungjawaban: $e');
-  //     throw Exception('Failed to upload pertanggungjawaban: $e');
-  //   }
-  // }
 
   static Future<bool> updateBookingStatus(int bookingId, String status) async {
     try {
-      // ✅ FIXED: Use exact backend endpoint PUT /api/bookings/{id}
       final url = '$baseUrl/bookings/$bookingId';
       logRequest('PUT', url, body: jsonEncode({"status": status}));
       
@@ -404,7 +369,6 @@ class ApiService {
 
   static Future<List<Map<String, dynamic>>> getPhotosByBookingId(int bookingId) async {
     try {
-      // ✅ FIXED: Use exact backend endpoint GET /api/photo_usage
       final url = '$baseUrl/photo_usage?booking_id=$bookingId';
       logRequest('GET', url);
       
@@ -452,7 +416,6 @@ class ApiService {
 
   Future<void> deletePhoto(int photoId) async {
     try {
-      // ✅ FIXED: Use exact backend endpoint DELETE /api/photo_usage/{id}
       final url = '$baseUrl/photo_usage/$photoId';
       logRequest('DELETE', url);
       
@@ -471,10 +434,9 @@ class ApiService {
     }
   }
 
-  // =================== FACILITY ==========================================
+  
   Future<List<Facility>> getFacilities() async {
     try {
-      // ✅ CORRECT: Using GET /api/Facilities (capital F matches backend)
       final url = '$baseUrl/Facilities';
       logRequest('GET', url);
       
@@ -521,7 +483,6 @@ class ApiService {
     try {
       final headers = await _getAuthHeaders();
       final requestData = {'name': data['name']};
-      // ✅ FIXED: Use exact backend endpoint POST /api/Facilities (capital F)
       final url = '$baseUrl/Facilities';
       
       logRequest('POST', url, headers: headers, body: json.encode(requestData));
@@ -549,7 +510,6 @@ class ApiService {
     try {
       final headers = await _getAuthHeaders();
       final requestData = {'name': data['name']};
-      // ✅ FIXED: Use exact backend endpoint PUT /api/Facilities/{id} (capital F)
       final url = '$baseUrl/Facilities/$id';
       
       logRequest('PUT', url, headers: headers, body: json.encode(requestData));
@@ -574,7 +534,6 @@ class ApiService {
   Future<void> deleteFacility(int id) async {
     try {
       final headers = await _getAuthHeaders();
-      // ✅ FIXED: Use exact backend endpoint DELETE /api/Facilities/{id} (capital F)
       final url = '$baseUrl/Facilities/$id';
       
       logRequest('DELETE', url, headers: headers);
@@ -595,7 +554,7 @@ class ApiService {
     }
   }
 
-  // =================== ROOM FACILITY ==============================
+  
   static Future<List<RoomFacility>> getRoomFacilities(int roomId) async {
     try {
       final url = '$baseUrl/room_facilities?room_id=$roomId';
@@ -663,10 +622,9 @@ class ApiService {
     }
   }
 
-  // =================== ROOMS ==========================================
+  
   static Future<List<Room>> getRooms() async {
     try {
-      // ✅ CORRECT: Using GET /api/meeting_rooms (matches backend exactly)
       final url = '$baseUrl/meeting_rooms';
       logRequest('GET', url);
       
@@ -714,7 +672,6 @@ class ApiService {
 
   static Future<Room> getRoom(int id) async {
     try {
-      // ✅ CORRECT: Using GET /api/Room/{id} (matches backend exactly)
       final url = '$baseUrl/Room/$id';
       logRequest('GET', url);
       
@@ -739,7 +696,6 @@ class ApiService {
 
   Future<void> updateRoom(int roomId, Map<String, dynamic> updatedData) async {
     try {
-      // ✅ CORRECT: Using PUT /api/rooms/{id} (matches backend exactly)
       final url = '$baseUrl/rooms/$roomId';
       logRequest('PUT', url, body: json.encode(updatedData));
       
@@ -768,7 +724,6 @@ class ApiService {
     print('📸 Has photo: ${photo != null}');
     
     try {
-      // ✅ CORRECT: Using POST /api/rooms (matches backend exactly)
       final uri = Uri.parse('$baseUrl/rooms');
       logRequest('POST (multipart)', uri.toString());
       
@@ -821,7 +776,6 @@ class ApiService {
 
   Future<Room> createRoom(Room room) async {
     try {
-      // ✅ CORRECT: Using POST /api/rooms (matches backend exactly)
       final url = '$baseUrl/rooms';
       final body = json.encode(room.toJson());
       logRequest('POST', url, body: body);
@@ -848,7 +802,6 @@ class ApiService {
 
   Future<void> deleteRoom(int id) async {
     try {
-      // ✅ CORRECT: Using DELETE /api/rooms/{id} (matches backend exactly)
       final url = '$baseUrl/rooms/$id';
       logRequest('DELETE', url);
       
@@ -868,7 +821,7 @@ class ApiService {
     }
   }
 
-  // =================== BOOKINGS ==========================================
+  
   static Future<bool> createBooking({
     required int userId,
     required int roomId,
@@ -898,7 +851,6 @@ class ApiService {
         "Photos": []
       };
 
-      // ✅ CORRECT: Using POST /api/bookings (matches backend exactly)
       final url = '$baseUrl/bookings';
       logRequest('POST', url, body: json.encode(bookingData));
 
@@ -919,7 +871,6 @@ class ApiService {
 
   static Future<List<Booking>> getBookings() async {
     try {
-      // ✅ CORRECT: Using GET /api/bookings (matches backend exactly)
       final url = '$baseUrl/bookings';
       logRequest('GET', url);
       
@@ -975,11 +926,10 @@ class ApiService {
     }
   }
 
-  // =================== ADMIN BOOKING MANAGEMENT ==========================================
+  
   
   static Future<bool> approveBooking(int bookingId, String note) async {
     try {
-      // ✅ CORRECT: Using PUT /api/bookings/{id}/approve (matches backend exactly)
       final url = '$baseUrl/bookings/$bookingId/approve';
       final body = json.encode({'note': note});
       logRequest('PUT', url, body: body);
@@ -1000,7 +950,6 @@ class ApiService {
 
   static Future<bool> rejectBooking(int bookingId, String note) async {
     try {
-      // ✅ CORRECT: Using PUT /api/bookings/{id}/reject (matches backend exactly)
       final url = '$baseUrl/bookings/$bookingId/reject';
       final body = json.encode({'note': note});
       logRequest('PUT', url, body: body);
@@ -1091,14 +1040,13 @@ class ApiService {
         "status": booking.status,
         "checkinTime": booking.checkinTime?.toIso8601String(),
         "checkoutTime": booking.checkoutTime?.toIso8601String(),
-        // ✅ FIX: Backend requires these fields - never send null
         "locationGps": booking.locationGps?.trim().isNotEmpty == true 
             ? booking.locationGps 
-            : "", // Required by backend
+            : "", 
         "isPresent": booking.isPresent ?? false,
         "roomPhotoUrl": booking.roomPhotoUrl?.trim().isNotEmpty == true
             ? booking.roomPhotoUrl
-            : "", // Required by backend
+            : "", 
         "createdAt": booking.createdAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
         "photoUrls": booking.photoUrls ?? [],
       });
@@ -1125,57 +1073,10 @@ class ApiService {
     }
   }
 
-  // static Future<bool> updateBooking(Booking booking) async {
-  //   try {
-  //     // ✅ CORRECT: Using PUT /api/bookings/{id} (matches backend exactly)
-  //     final url = '$baseUrl/bookings/${booking.id}';
-  //     final body = jsonEncode({
-  //       "id": booking.id,
-  //       "roomId": booking.roomId,
-  //       "roomName": booking.roomName,
-  //       "userId": booking.userId,
-  //       "userName": booking.userName,
-  //       "bookingDate": booking.bookingDate.toIso8601String(),
-  //       "startTime": booking.startTime,
-  //       "endTime": booking.endTime,
-  //       "purpose": booking.purpose,
-  //       "status": booking.status,
-  //       "checkinTime": booking.checkinTime?.toIso8601String(),
-  //       "checkoutTime": booking.checkoutTime?.toIso8601String(),
-  //       "locationGps": booking.locationGps,
-  //       "isPresent": booking.isPresent,
-  //       "roomPhotoUrl": booking.roomPhotoUrl,
-  //       "createdAt": booking.createdAt?.toIso8601String(),
-  //       "photoUrls": booking.photoUrls ?? [],
-  //     });
-      
-  //     logRequest('PUT', url, body: body);
-
-  //     final response = await http.put(
-  //       Uri.parse(url),
-  //       headers: defaultHeaders,
-  //       body: body,
-  //     ).timeout(timeoutDuration);
-
-  //     logResponse(response.statusCode, response.body);
-
-  //     if (response.statusCode == 200 || response.statusCode == 204) {
-  //       print('✅ Booking updated successfully with status: ${response.statusCode}');
-  //       return true;
-  //     } else {
-  //       throw handleError(null, response.statusCode, response.body);
-  //     }
-  //   } catch (e) {
-  //     print('❌ Error in updateBooking: $e');
-  //     return false;
-  //   }
-  // }
-
-  // =================== USER BOOKING ACTIONS ==========================================
+  
   
   static Future<bool> checkin(int bookingId, String locationGps) async {
     try {
-      // ✅ CORRECT: Using PUT /api/bookings/{id}/checkin (matches backend exactly)
       final url = '$baseUrl/bookings/$bookingId/checkin';
       final body = json.encode({'location_gps': locationGps});
       logRequest('PUT', url, body: body);
@@ -1196,7 +1097,6 @@ class ApiService {
 
   static Future<bool> checkout(int bookingId, String photoUrl) async {
     try {
-      // ✅ CORRECT: Using PUT /api/bookings/{id}/checkout (matches backend exactly)
       final url = '$baseUrl/bookings/$bookingId/checkout';
       final body = json.encode({'photo_url': photoUrl});
       logRequest('PUT', url, body: body);
@@ -1285,7 +1185,7 @@ class ApiService {
     }
   }
 
-  // =================== LEGACY BOOKING METHODS ==========================================
+  
   
   static Future<bool> createBookingSwagger(int userId, int roomId, DateTime bookingDate, String purpose, String startTime, String endTime) async {
     try {
@@ -1365,9 +1265,8 @@ class ApiService {
     }
   }
 
-  // =================== UTILITY METHODS ==========================================
   
-  // ✅ Test koneksi ke API
+  
   static Future<bool> testConnection() async {
     try {
       print('🧪 Testing API connection...');
@@ -1390,7 +1289,6 @@ class ApiService {
     }
   }
 
-  // ✅ Debug all endpoints
   static Future<Map<String, dynamic>> debugEndpoints() async {
     final results = <String, dynamic>{};
     

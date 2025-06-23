@@ -30,7 +30,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     });
   }
 
-  // Widget untuk menampilkan gambar ruangan dengan fallback ke default
+  
   Widget _buildRoomImage(Room room) {
     return Image.network(
       room.photoUrl,
@@ -50,14 +50,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         );
       },
       errorBuilder: (context, error, stackTrace) {
-        // Jika gagal load dari network, gunakan gambar default dari assets
+        
         return Image.asset(
           'assets/images/default.jpeg',
           width: double.infinity,
           height: double.infinity,
           fit: BoxFit.cover,
           errorBuilder: (context, error, stackTrace) {
-            // Jika default.png juga gagal, tampilkan placeholder
+            
             return _buildDefaultRoomPlaceholder();
           },
         );
@@ -65,7 +65,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  // Widget placeholder jika semua gambar gagal dimuat
+  
   Widget _buildDefaultRoomPlaceholder() {
     return Container(
       width: double.infinity,
@@ -74,7 +74,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Simple room illustration using icons
+          
           Stack(
             alignment: Alignment.center,
             children: [
@@ -87,7 +87,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   border: Border.all(color: Colors.grey[400]!, width: 2),
                 ),
               ),
-              // Table
+              
               Container(
                 width: 40,
                 height: 20,
@@ -96,7 +96,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
-              // Chairs
+              
               Positioned(
                 left: 15,
                 top: 12,
@@ -177,7 +177,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Header - sama seperti code pertama
+            
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               child: Row(
@@ -189,7 +189,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   const SizedBox(width: 12),
                   const Expanded(
                     child: Text(
-                      'Admin', // Ubah dari 'Peminjam' ke 'Admin'
+                      'Admin', 
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 18,
@@ -216,13 +216,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            // Title
+            
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 24),
               child: Align(
                 alignment: Alignment.center,
                 child: Text(
-                  'Dashboard Admin', // Ubah title sesuai halaman admin
+                  'Dashboard Admin', 
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 20,
@@ -232,7 +232,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            // Grid Ruangan
+            
             Expanded(
               child: FutureBuilder<List<Room>>(
                 future: futureRooms,
@@ -249,9 +249,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     itemCount: rooms.length,
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
-                      mainAxisSpacing: 18, // Sesuaikan dengan code pertama
-                      crossAxisSpacing: 16, // Sesuaikan dengan code pertama
-                      childAspectRatio: 0.85, // Sesuaikan dengan code pertama
+                      mainAxisSpacing: 18, 
+                      crossAxisSpacing: 16, 
+                      childAspectRatio: 0.85, 
                     ),
                     itemBuilder: (context, index) {
                       final room = rooms[index];
@@ -279,10 +279,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                           elevation: 4,
                           child: Stack(
                             children: [
-                              // Gunakan method _buildRoomImage untuk handle gambar
+                              
                               _buildRoomImage(room),
                               
-                              // Gradient overlay untuk readability text
+                              
                               Positioned(
                                 bottom: 0,
                                 left: 0,
@@ -302,7 +302,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                 ),
                               ),
                               
-                              // Room information
+                              
                               Positioned(
                                 bottom: 0,
                                 left: 0,
@@ -356,7 +356,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                 ),
                               ),
                               
-                              // Status badge di pojok kanan atas
+                              
                               Positioned(
                                 top: 8,
                                 right: 8,
@@ -388,7 +388,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           ],
         ),
       ),
-      // Tombol "+" di kanan bawah
+      
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xFF0A3573),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -400,7 +400,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             ),
           );
           
-          // Refresh data jika ada perubahan
+          
           if (result == true) {
             fetchRooms();
           }
@@ -410,7 +410,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  // Helper method untuk mendapatkan warna status
+  
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'available':
@@ -424,7 +424,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     }
   }
 
-  // Helper method untuk mendapatkan text status
+  
   String _getStatusText(String status) {
     switch (status.toLowerCase()) {
       case 'available':

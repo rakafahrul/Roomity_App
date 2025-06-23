@@ -31,7 +31,7 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
             'id': userData['id'],
             'name': userData['name'],
             'email': userData['email'],
-            'password': _password, // Selalu ambil dari input user
+            'password': _password, 
             'photo': userData['photo'] ?? '',
             'role': userData['role'],
             'createdAt': userData['createdAt'],
@@ -62,7 +62,7 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
     }
   }
 
-  // Fungsi logout
+  
   Future<void> _logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('user_data');
@@ -81,7 +81,7 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Back button
+              
               IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
                 onPressed: () => Navigator.pop(context),
@@ -89,7 +89,7 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
                 constraints: const BoxConstraints(),
               ),
               const SizedBox(height: 16),
-              // Title
+              
               Center(
                 child: Column(
                   children: const [
@@ -288,11 +288,11 @@ class _UserLoginScreenState extends State<UserLoginScreen> {
                         ),
                       ),
                     ),
-                    // Tombol logout (hanya contoh, bisa dipanggil dari menu/settings)
-                    // ElevatedButton(
-                    //   onPressed: _logout,
-                    //   child: const Text("Logout"),
-                    // ),
+                    
+                    
+                    
+                    
+                    
                   ],
                 ),
               ),

@@ -8,7 +8,7 @@ class RoomDetailScreen extends StatelessWidget {
   final Room room;
   const RoomDetailScreen({super.key, required this.room});
 
-  // Widget untuk menampilkan gambar ruangan dengan fallback ke default
+  
   Widget _buildRoomImage(String imageUrl) {
     return Image.network(
       imageUrl,
@@ -29,14 +29,14 @@ class RoomDetailScreen extends StatelessWidget {
         );
       },
       errorBuilder: (context, error, stackTrace) {
-        // Jika gagal load dari network, gunakan gambar default dari assets
+        
         return Image.asset(
           'assets/images/default.jpeg',
           height: 220,
           width: double.infinity,
           fit: BoxFit.cover,
           errorBuilder: (context, error, stackTrace) {
-            // Jika default.png juga gagal, tampilkan placeholder
+            
             return _buildDefaultRoomPlaceholder();
           },
         );
@@ -44,7 +44,7 @@ class RoomDetailScreen extends StatelessWidget {
     );
   }
 
-  // Widget placeholder jika semua gambar gagal dimuat
+  
   Widget _buildDefaultRoomPlaceholder() {
     return Container(
       height: 220,
@@ -53,7 +53,7 @@ class RoomDetailScreen extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Simple room illustration using icons
+          
           Stack(
             alignment: Alignment.center,
             children: [
@@ -66,7 +66,7 @@ class RoomDetailScreen extends StatelessWidget {
                   border: Border.all(color: Colors.grey[400]!, width: 2),
                 ),
               ),
-              // Table
+              
               Container(
                 width: 60,
                 height: 30,
@@ -75,7 +75,7 @@ class RoomDetailScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(6),
                 ),
               ),
-              // Chairs
+              
               Positioned(
                 left: 20,
                 top: 15,
@@ -148,7 +148,7 @@ class RoomDetailScreen extends StatelessWidget {
     );
   }
 
-  // Helper method untuk mendapatkan icon fasilitas
+  
   IconData _getFacilityIcon(String facilityName) {
     switch (facilityName.toLowerCase()) {
       case 'wifi':
@@ -185,7 +185,7 @@ class RoomDetailScreen extends StatelessWidget {
     }
   }
 
-  // Helper method untuk mendapatkan warna status ruangan
+  
   Color _getStatusColor(String? status) {
     switch (status?.toLowerCase()) {
       case 'available':
@@ -199,7 +199,7 @@ class RoomDetailScreen extends StatelessWidget {
     }
   }
 
-  // Helper method untuk mendapatkan text status ruangan
+  
   String _getStatusText(String? status) {
     switch (status?.toLowerCase()) {
       case 'available':
@@ -237,11 +237,11 @@ class RoomDetailScreen extends StatelessWidget {
       ),
       body: ListView(
         children: [
-          // Gambar ruangan dengan overlay status
+          
           Stack(
             children: [
               _buildRoomImage(room.photoUrl),
-              // Status badge di pojok kanan atas
+              
               Positioned(
                 top: 16,
                 right: 16,
@@ -276,7 +276,7 @@ class RoomDetailScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header Info Card
+                
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
@@ -295,7 +295,7 @@ class RoomDetailScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Nama ruangan
+                      
                       Text(
                         room.name,
                         style: const TextStyle(
@@ -306,7 +306,7 @@ class RoomDetailScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
                       
-                      // Lokasi
+                      
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
@@ -336,7 +336,7 @@ class RoomDetailScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                       
-                      // Kapasitas
+                      
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
@@ -367,7 +367,7 @@ class RoomDetailScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
 
-                // Fasilitas Card
+                
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
@@ -444,7 +444,7 @@ class RoomDetailScreen extends StatelessWidget {
                                         fontStyle: FontStyle.italic,
                                       ),
                                     ),
-                                    // Debug info - hapus setelah testing
+                                    
                                     const SizedBox(height: 4),
                                   ],
                                 ),
@@ -455,7 +455,7 @@ class RoomDetailScreen extends StatelessWidget {
                       else
                         Column(
                           children: [
-                            // Debug info - hapus setelah testing
+                            
                             Container(
                               padding: const EdgeInsets.all(8),
                               margin: const EdgeInsets.only(bottom: 8),
@@ -518,7 +518,7 @@ class RoomDetailScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
 
-                // Deskripsi Card
+                
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
@@ -585,7 +585,7 @@ class RoomDetailScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 32),
 
-                // Tombol Pinjam
+                
                 Container(
                   width: double.infinity,
                   height: 56,

@@ -49,7 +49,7 @@ class _UserRegisterScreenState extends State<UserRegisterScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Back button
+              
               IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
                 onPressed: () => Navigator.pop(context),
@@ -57,7 +57,7 @@ class _UserRegisterScreenState extends State<UserRegisterScreen> {
                 constraints: const BoxConstraints(),
               ),
               const SizedBox(height: 16),
-              // Title
+              
               Center(
                 child: Column(
                   children: const [

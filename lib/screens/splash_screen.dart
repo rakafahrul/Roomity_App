@@ -44,7 +44,7 @@ class _SplashScreenState extends State<SplashScreen> {
             children: [
               const Spacer(),
 
-              // Ganti dengan logo gambar
+              
               SizedBox(
                 width: 100,
                 height: 100,
@@ -58,7 +58,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
               const SizedBox(height: 30),
 
-              // Teks Roomity
+              
               const Text(
                 'Roomity',
                 style: TextStyle(
@@ -70,7 +70,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
               const SizedBox(height: 8),
 
-              // tagline
+              
               const Text(
                 'Memudahkan peminjaman ruang rapat!',
                 style: TextStyle(

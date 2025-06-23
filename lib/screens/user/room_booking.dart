@@ -203,7 +203,7 @@ class _RoomBookingScreenState extends State<RoomBookingScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Tanggal
+            
             GestureDetector(
               onTap: _showCustomDatePicker,
               child: Container(
@@ -229,7 +229,7 @@ class _RoomBookingScreenState extends State<RoomBookingScreen> {
                 ),
               ),
             ),
-            // Jam Mulai
+            
             GestureDetector(
               onTap: _pickTimeRange,
               child: Container(
@@ -253,7 +253,7 @@ class _RoomBookingScreenState extends State<RoomBookingScreen> {
                 ),
               ),
             ),
-            // Kegiatan
+            
             const Text('Kegiatan', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
             const SizedBox(height: 4),
             TextField(

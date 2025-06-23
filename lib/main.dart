@@ -82,8 +82,7 @@ class _MyAppState extends State<MyApp> {
       initialRoute: '/',
       routes: {
         '/': (context) => const SplashScreen(),
-        '/login': (context) => const UserLoginScreen(),
-        // '/admin/login': (context) => const AdminLoginScreen(),
+        '/login': (context) => const UserLoginScreen(),     
         '/admin/dashboard_screen': (context) => const AdminDashboardScreen(),
         '/admin/user_management': (context) => const UserManagementScreen(),
         '/admin/facility_management': (context) => const AdminFacilityManagementScreen(),

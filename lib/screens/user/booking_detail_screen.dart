@@ -26,7 +26,7 @@ class UserBookingDetailsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Foto ruangan
+            
             if (booking.roomPhotoUrl != null)
               ClipRRect(
                 borderRadius: BorderRadius.circular(16),
@@ -38,7 +38,7 @@ class UserBookingDetailsScreen extends StatelessWidget {
                 ),
               ),
             const SizedBox(height: 20),
-            // Nama ruangan & lokasi
+            
             Text(
               'Ruangan ID: ${booking.roomId}',
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
@@ -49,7 +49,7 @@ class UserBookingDetailsScreen extends StatelessWidget {
               style: const TextStyle(color: Colors.black54, fontSize: 14),
             ),
             const SizedBox(height: 16),
-            // Tanggal & jam
+            
             Row(
               children: [
                 const Icon(Icons.calendar_today_rounded, size: 20, color: Colors.black45),
@@ -72,7 +72,7 @@ class UserBookingDetailsScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            // Keperluan
+            
             const Text(
               'Keperluan',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
@@ -83,7 +83,7 @@ class UserBookingDetailsScreen extends StatelessWidget {
               style: const TextStyle(fontSize: 15, color: Colors.black87),
             ),
             const SizedBox(height: 16),
-            // Status
+            
             Row(
               children: [
                 const Text(
@@ -107,7 +107,7 @@ class UserBookingDetailsScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            // Checkin/Checkout info
+            
             if (booking.checkinTime != null)
               Row(
                 children: [
@@ -131,7 +131,7 @@ class UserBookingDetailsScreen extends StatelessWidget {
                 ],
               ),
             const SizedBox(height: 24),
-            // Tombol Check-in/Check-out jika status approved
+            
             if (booking.status == 'approved')
               Row(
                 children: [

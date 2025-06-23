@@ -17,7 +17,7 @@ class Approval {
     this.approverName,
   });
 
-  // Getter untuk kompatibilitas dengan UI lama
+  
   String get approver => approverName ?? 'Admin';
   DateTime get date => approvedAt;
 

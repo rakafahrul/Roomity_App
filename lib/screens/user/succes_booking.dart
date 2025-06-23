@@ -12,7 +12,7 @@ class BookingSuccessScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Gambar ilustrasi (bisa pakai asset atau Icon sementara)
+              
               Icon(Icons.check_circle_rounded, color: Color(0xFF4DD18B), size: 100),
               const SizedBox(height: 32),
               const Text(

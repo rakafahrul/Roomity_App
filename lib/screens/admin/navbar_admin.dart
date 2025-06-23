@@ -29,7 +29,6 @@ class NavBar extends StatelessWidget {
       ],
       currentIndex: currentIndex,
       onTap: (i) {
-        // Ganti navigasi sesuai kebutuhan
         if (i == 0) {
           Navigator.pushReplacementNamed(context, '/admin/dashboard_screen');
         } else if (i == 1) {

@@ -34,7 +34,7 @@ class _AdminFacilityDetailScreenState extends State<AdminFacilityDetailScreen> {
         );
         if (mounted) {
           _showSuccess('Facility updated successfully');
-          Navigator.pop(context, true); // Return success
+          Navigator.pop(context, true); 
         }
       } catch (e) {
         if (mounted) {
@@ -54,7 +54,7 @@ class _AdminFacilityDetailScreenState extends State<AdminFacilityDetailScreen> {
       await _apiService.deleteFacility(widget.facility.id);
       if (mounted) {
         _showSuccess('Facility deleted successfully');
-        Navigator.pop(context, true); // Return success
+        Navigator.pop(context, true); 
       }
     } catch (e) {
       if (mounted) {

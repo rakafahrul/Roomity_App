@@ -119,15 +119,15 @@ class _AdminRoomManagementScreenState extends State<AdminRoomManagementScreen> {
       'Longitude': _longitude.toString(),
     });
 
-    // Add facilities sebagai JSON array - ini yang dikirim ke server
+    
     String facilitiesJson = jsonEncode(_selectedFacilities);
     request.fields['Facilities'] = facilitiesJson;
     print('Facilities sent to server: $facilitiesJson');
     
-    // Photo is REQUIRED - always add one
+    
     try {
       if (_pickedFile != null) {
-        // User selected a photo
+        
         final bytes = await _pickedFile!.readAsBytes();
         final multipartFile = http.MultipartFile.fromBytes(
           'Photo',
@@ -137,7 +137,7 @@ class _AdminRoomManagementScreenState extends State<AdminRoomManagementScreen> {
         request.files.add(multipartFile);
         print('Added user photo: ${_pickedFile!.name}');
       } else {
-        // Create a default/placeholder image
+        
         await _addDefaultPhoto(request);
       }
     } catch (e) {
@@ -160,7 +160,7 @@ class _AdminRoomManagementScreenState extends State<AdminRoomManagementScreen> {
       if (response.statusCode == 200 || response.statusCode == 201) {
         print('Room created successfully');
         
-        // Parse response to check how facilities are stored
+        
         try {
           final responseData = jsonDecode(response.body);
           print('Created room response: $responseData');
@@ -178,7 +178,7 @@ class _AdminRoomManagementScreenState extends State<AdminRoomManagementScreen> {
         try {
           final errorData = jsonDecode(response.body);
           if (errorData is Map) {
-            // Parse validation errors
+            
             if (errorData.containsKey('errors')) {
               final errors = errorData['errors'];
               List<String> errorMessages = [];
@@ -214,7 +214,7 @@ class _AdminRoomManagementScreenState extends State<AdminRoomManagementScreen> {
 
   Future<void> _addDefaultPhoto(http.MultipartRequest request) async {
     try {
-      // Try to load default room image from assets
+      
       final defaultImageBytes = await _loadDefaultRoomImage();
       
       final multipartFile = http.MultipartFile.fromBytes(
@@ -226,7 +226,7 @@ class _AdminRoomManagementScreenState extends State<AdminRoomManagementScreen> {
       print('Added default room image from assets');
     } catch (e) {
       print('Error loading default room image: $e');
-      // Fallback to generated placeholder
+      
       final placeholderBytes = _createPlaceholderImage();
       final multipartFile = http.MultipartFile.fromBytes(
         'Photo',
@@ -240,12 +240,12 @@ class _AdminRoomManagementScreenState extends State<AdminRoomManagementScreen> {
 
   Future<List<int>> _loadDefaultRoomImage() async {
     try {
-      // Load default.png from assets
+      
       final byteData = await rootBundle.load('assets/images/default.jpeg');
       return byteData.buffer.asUint8List();
     } catch (e) {
       print('Error loading default.png: $e');
-      // If default.png not found, try other common names
+      
       try {
         final byteData = await rootBundle.load('assets/images/default_room.jpg');
         return byteData.buffer.asUint8List();
@@ -254,7 +254,7 @@ class _AdminRoomManagementScreenState extends State<AdminRoomManagementScreen> {
           final byteData = await rootBundle.load('assets/images/default.jpeg');
           return byteData.buffer.asUint8List();
         } catch (e3) {
-          // If all fail, create a simple room image
+          
           print('All default images failed, using generated placeholder');
           return _createDefaultRoomImageBytes();
         }
@@ -263,7 +263,7 @@ class _AdminRoomManagementScreenState extends State<AdminRoomManagementScreen> {
   }
 
   List<int> _createDefaultRoomImageBytes() {
-    // Create a simple room representation as SVG converted to bytes
+    
     final svgString = '''
     <svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
       <!-- Background -->
@@ -299,28 +299,28 @@ class _AdminRoomManagementScreenState extends State<AdminRoomManagementScreen> {
     </svg>
     ''';
     
-    // Convert SVG string to bytes
+    
     return utf8.encode(svgString);
   }
 
   List<int> _createPlaceholderImage() {
-    // Create a minimal 1x1 transparent PNG as final fallback
+    
     return [
-      137, 80, 78, 71, 13, 10, 26, 10, // PNG signature
-      0, 0, 0, 13, // IHDR chunk length
-      73, 72, 68, 82, // IHDR
-      0, 0, 0, 1, // width: 1
-      0, 0, 0, 1, // height: 1
-      8, 6, // bit depth: 8, color type: 6 (RGBA)
-      0, 0, 0, // compression, filter, interlace
-      31, 21, 196, 164, // CRC
-      0, 0, 0, 13, // IDAT chunk length
-      73, 68, 65, 84, // IDAT
-      120, 156, 99, 248, 15, 0, 0, 1, 0, 1, // compressed data
-      94, 96, 130, 52, // CRC
-      0, 0, 0, 0, // IEND chunk length
-      73, 69, 78, 68, // IEND
-      174, 66, 96, 130 // CRC
+      137, 80, 78, 71, 13, 10, 26, 10, 
+      0, 0, 0, 13, 
+      73, 72, 68, 82, 
+      0, 0, 0, 1, 
+      0, 0, 0, 1, 
+      8, 6, 
+      0, 0, 0, 
+      31, 21, 196, 164, 
+      0, 0, 0, 13, 
+      73, 68, 65, 84, 
+      120, 156, 99, 248, 15, 0, 0, 1, 0, 1, 
+      94, 96, 130, 52, 
+      0, 0, 0, 0, 
+      73, 69, 78, 68, 
+      174, 66, 96, 130 
     ];
   }
 
@@ -331,13 +331,13 @@ class _AdminRoomManagementScreenState extends State<AdminRoomManagementScreen> {
       textColor: Colors.white,
     );
     
-    // Debug: Call API to get latest rooms and check the new room
+    
     print('=== CHECKING NEWLY CREATED ROOM ===');
     try {
       final updatedRooms = await ApiService.getRooms();
       print('Total rooms after creation: ${updatedRooms.length}');
       
-      // Find the newly created room (assuming it's the last one or has the name we just created)
+      
       final newRoomName = _nameController.text.trim();
       final newRoom = updatedRooms.where((room) => room.name == newRoomName).lastOrNull;
       
@@ -354,7 +354,7 @@ class _AdminRoomManagementScreenState extends State<AdminRoomManagementScreen> {
       print('Error fetching updated rooms: $e');
     }
     
-    // Clear form
+    
     _nameController.clear();
     _locationController.clear();
     _descriptionController.clear();
@@ -381,7 +381,7 @@ class _AdminRoomManagementScreenState extends State<AdminRoomManagementScreen> {
       return;
     }
 
-    // Show confirmation dialog
+    
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -424,7 +424,7 @@ class _AdminRoomManagementScreenState extends State<AdminRoomManagementScreen> {
     });
 
     try {
-      // Server mengharapkan multipart/form-data dengan photo wajib
+      
       await _addRoomWithMultipart();
     } catch (e) {
       print('Room creation failed: $e');
@@ -578,7 +578,7 @@ class _AdminRoomManagementScreenState extends State<AdminRoomManagementScreen> {
                   )
                 : Stack(
                     children: [
-                      // Use default.png from assets
+                      
                       Image.asset(
                         'assets/images/default.jpeg',
                         width: double.infinity,
@@ -674,7 +674,7 @@ class _AdminRoomManagementScreenState extends State<AdminRoomManagementScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Simple room illustration using icons
+          
           Stack(
             alignment: Alignment.center,
             children: [
@@ -687,7 +687,7 @@ class _AdminRoomManagementScreenState extends State<AdminRoomManagementScreen> {
                   border: Border.all(color: Colors.grey[400]!, width: 2),
                 ),
               ),
-              // Table
+              
               Container(
                 width: 60,
                 height: 30,
@@ -696,7 +696,7 @@ class _AdminRoomManagementScreenState extends State<AdminRoomManagementScreen> {
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
-              // Chairs
+              
               Positioned(
                 left: 20,
                 top: 15,

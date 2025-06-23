@@ -63,7 +63,7 @@ class _PeminjamanScreenState extends State<PeminjamanScreen> with TickerProvider
     await _loadBookings();
   }
 
-  // lokasi ruangan dari booking
+  
   String _getBookingLocation(Booking booking) {
     final json = booking.toJson();
     if (json.containsKey('roomLocation')) {
@@ -76,7 +76,7 @@ class _PeminjamanScreenState extends State<PeminjamanScreen> with TickerProvider
     return 'Gedung 24A, Ilmu Komputer';
   }
 
-  //  koordinat ruangan
+  
   double? _getBookingLatitude(Booking booking) {
     final json = booking.toJson();
     if (json.containsKey('roomLatitude')) {
@@ -132,13 +132,13 @@ class _PeminjamanScreenState extends State<PeminjamanScreen> with TickerProvider
       double distance = Geolocator.distanceBetween(pos.latitude, pos.longitude, roomLat, roomLng);
 
       if (distance <= 980) {
-        // konfirmasi kehadiran
+        
         await ApiService.confirmAttendance(
           booking.id,
           "${pos.latitude},${pos.longitude}",
         );
         
-        // Refresh data
+        
         await _refreshBookings();
         
         if (mounted) {
@@ -342,7 +342,7 @@ class _PeminjamanScreenState extends State<PeminjamanScreen> with TickerProvider
               children: [
                 Row(
                   children: [
-                    // Room Image
+                    
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: (booking.roomPhotoUrl != null && booking.roomPhotoUrl!.isNotEmpty)
@@ -367,7 +367,7 @@ class _PeminjamanScreenState extends State<PeminjamanScreen> with TickerProvider
                     ),
                     const SizedBox(width: 16),
                     
-                    // Booking Info
+                    
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -440,7 +440,7 @@ class _PeminjamanScreenState extends State<PeminjamanScreen> with TickerProvider
                       ),
                     ),
                     
-                    // Status or Action Indicator
+                    
                     Icon(
                       Icons.chevron_right,
                       color: Colors.grey[400],
@@ -448,11 +448,11 @@ class _PeminjamanScreenState extends State<PeminjamanScreen> with TickerProvider
                   ],
                 ),
                 
-                // Tab specific actions
-                if (tabIndex == 0) ..._buildPengajuanActions(booking), // Tab Pengajuan
-                if (tabIndex == 1) ..._buildDisetujuiActions(booking), // Tab Disetujui
-                if (tabIndex == 2) ..._buildPemakaianActions(booking), // Tab Pemakaian
-                if (tabIndex == 3) ..._buildSelesaiActions(booking), // Tab Selesai
+                
+                if (tabIndex == 0) ..._buildPengajuanActions(booking), 
+                if (tabIndex == 1) ..._buildDisetujuiActions(booking), 
+                if (tabIndex == 2) ..._buildPemakaianActions(booking), 
+                if (tabIndex == 3) ..._buildSelesaiActions(booking), 
               ],
             ),
           ),
@@ -660,7 +660,7 @@ class _PeminjamanScreenState extends State<PeminjamanScreen> with TickerProvider
   }
 }
 
-// ✅ USER BOOKING DETAIL SCREEN
+
 class UserBookingDetailScreen extends StatelessWidget {
   final Booking booking;
 
@@ -739,7 +739,7 @@ class UserBookingDetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Room Info Card
+            
             Container(
               margin: const EdgeInsets.all(20),
               padding: const EdgeInsets.all(16),
@@ -834,7 +834,7 @@ class UserBookingDetailScreen extends StatelessWidget {
               ),
             ),
 
-            // Detail Peminjaman
+            
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 20),
               padding: const EdgeInsets.all(20),
@@ -883,7 +883,7 @@ class UserBookingDetailScreen extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // Alasan Peminjaman
+            
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 20),
               padding: const EdgeInsets.all(20),
@@ -921,7 +921,7 @@ class UserBookingDetailScreen extends StatelessWidget {
               ),
             ),
 
-            // Admin Notes (if rejected)
+            
             if (booking.status == 'rejected' && booking.adminNotes != null) ...[
               const SizedBox(height: 20),
               Container(
@@ -1008,7 +1008,7 @@ class UserBookingDetailScreen extends StatelessWidget {
   }
 }
 
-// ✅ HALAMAN PERTANGGUNGJAWABAN - CAMERA ONLY (Keep as is)
+
 class PertanggungjawabanScreen extends StatefulWidget {
   final Booking booking;
   const PertanggungjawabanScreen({super.key, required this.booking});
@@ -1022,12 +1022,12 @@ class _PertanggungjawabanScreenState extends State<PertanggungjawabanScreen> {
   bool loading = false;
   String loadingMessage = 'Menyiapkan...';
 
-  // ✅ IMPROVED: Better photo capture with validation
+  
   Future<void> pickPhotoFromCamera() async {
     try {
       final picker = ImagePicker();
       
-      // ✅ Check camera permission first
+      
       final cameraPermission = await Permission.camera.request();
       if (cameraPermission.isDenied) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1039,7 +1039,7 @@ class _PertanggungjawabanScreenState extends State<PertanggungjawabanScreen> {
         return;
       }
       
-      // ✅ Konfirmasi sebelum membuka kamera
+      
       final confirm = await showDialog<bool>(
         context: context,
         builder: (BuildContext context) {
@@ -1075,16 +1075,16 @@ class _PertanggungjawabanScreenState extends State<PertanggungjawabanScreen> {
 
       if (confirm != true) return;
 
-      // ✅ Show loading while opening camera
+      
       setState(() {
         loadingMessage = 'Membuka kamera...';
         loading = true;
       });
 
-      // ✅ Buka kamera dengan konfigurasi optimal
+      
       final XFile? capturedPhoto = await picker.pickImage(
         source: ImageSource.camera,
-        imageQuality: 85, // Balance between quality and file size
+        imageQuality: 85, 
         maxWidth: 1920,
         maxHeight: 1080,
         preferredCameraDevice: CameraDevice.rear,
@@ -1095,7 +1095,7 @@ class _PertanggungjawabanScreenState extends State<PertanggungjawabanScreen> {
       });
       
       if (capturedPhoto != null) {
-        // ✅ Validate captured photo
+        
         final file = File(capturedPhoto.path);
         final fileSize = await file.length();
         
@@ -1103,7 +1103,7 @@ class _PertanggungjawabanScreenState extends State<PertanggungjawabanScreen> {
           throw Exception('Foto kosong, silakan coba lagi');
         }
         
-        if (fileSize > 10 * 1024 * 1024) { // 10MB limit
+        if (fileSize > 10 * 1024 * 1024) { 
           throw Exception('Ukuran foto terlalu besar (maksimal 10MB)');
         }
         
@@ -1149,7 +1149,7 @@ class _PertanggungjawabanScreenState extends State<PertanggungjawabanScreen> {
     }
   }
 
-  // ✅ IMPROVED: Robust upload with multiple strategies
+  
   Future<void> submit() async {
     if (photo == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1169,7 +1169,7 @@ class _PertanggungjawabanScreenState extends State<PertanggungjawabanScreen> {
       return;
     }
     
-    // ✅ Enhanced confirmation dialog
+    
     final confirm = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
@@ -1237,7 +1237,7 @@ class _PertanggungjawabanScreenState extends State<PertanggungjawabanScreen> {
     });
     
     try {
-      // ✅ Validate file exists before upload
+      
       final file = File(photo!.path);
       if (!await file.exists()) {
         throw Exception('File foto tidak ditemukan');
@@ -1247,7 +1247,7 @@ class _PertanggungjawabanScreenState extends State<PertanggungjawabanScreen> {
         loadingMessage = 'Mengirim foto...';
       });
       
-      // ✅ Use debug upload strategy untuk melihat detail error
+      
       print('🎯 PERTANGGUNGJAWABAN: Starting upload for booking ${widget.booking.id}');
       
       await ApiService.uploadPertanggungjawabanSmart(
@@ -1259,11 +1259,11 @@ class _PertanggungjawabanScreenState extends State<PertanggungjawabanScreen> {
         loadingMessage = 'Menyelesaikan...';
       });
       
-      // ✅ Small delay for better UX
+      
       await Future.delayed(const Duration(milliseconds: 500));
       
       if (mounted) {
-        // ✅ Show success dialog
+        
         await showDialog(
           context: context,
           barrierDismissible: false,
@@ -1296,8 +1296,8 @@ class _PertanggungjawabanScreenState extends State<PertanggungjawabanScreen> {
             actions: [
               ElevatedButton(
                 onPressed: () {
-                  Navigator.pop(context); // Close dialog
-                  Navigator.pop(context, true); // Return to previous screen
+                  Navigator.pop(context); 
+                  Navigator.pop(context, true); 
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
@@ -1311,7 +1311,7 @@ class _PertanggungjawabanScreenState extends State<PertanggungjawabanScreen> {
       }
     } catch (e) {
       if (mounted) {
-        // ✅ Show detailed error dialog
+        
         await showDialog(
           context: context,
           builder: (context) => AlertDialog(
@@ -1358,7 +1358,7 @@ class _PertanggungjawabanScreenState extends State<PertanggungjawabanScreen> {
               ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context);
-                  submit(); // Retry
+                  submit(); 
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF192965),
@@ -1384,7 +1384,7 @@ class _PertanggungjawabanScreenState extends State<PertanggungjawabanScreen> {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
-        // ✅ Prevent back during loading
+        
         leading: loading ? null : IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -1397,7 +1397,7 @@ class _PertanggungjawabanScreenState extends State<PertanggungjawabanScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header info
+                
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -1440,7 +1440,7 @@ class _PertanggungjawabanScreenState extends State<PertanggungjawabanScreen> {
                 
                 const SizedBox(height: 24),
                 
-                // Photo area
+                
                 GestureDetector(
                   onTap: loading ? null : pickPhotoFromCamera,
                   child: Center(
@@ -1507,7 +1507,7 @@ class _PertanggungjawabanScreenState extends State<PertanggungjawabanScreen> {
                   ),
                 ),
                 
-                // Info tambahan
+                
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.all(12),
@@ -1532,7 +1532,7 @@ class _PertanggungjawabanScreenState extends State<PertanggungjawabanScreen> {
                 
                 const Spacer(),
                 
-                // Submit button
+                
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -1575,7 +1575,7 @@ class _PertanggungjawabanScreenState extends State<PertanggungjawabanScreen> {
             ),
           ),
           
-          // ✅ Loading overlay
+          
           if (loading)
             Container(
               color: Colors.black.withOpacity(0.3),

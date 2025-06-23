@@ -1,4 +1,4 @@
-// File: lib/models/room.dart
+
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:rom_app/utils/image_helper.dart';
@@ -30,31 +30,31 @@ class Room {
     this.longitude,
   });
 
-  // Get full image URL using ImageHelper
+  
   String get fullImageUrl => ImageHelper.getFullImageUrl(photoUrl);
   
-  // Check if has custom image (not default Pinterest URL)
+  
   bool get hasCustomImage => 
     photoUrl.isNotEmpty && 
     !photoUrl.contains('pin.it') && 
     !photoUrl.contains('pinterest.com') &&
     photoUrl != 'https://pin.it/7jmxYwP83';
 
-  // Get status color
+  
   Color get statusColor {
     switch (status.toLowerCase()) {
       case 'available':
-        return const Color(0xFF4CAF50); // Green
+        return const Color(0xFF4CAF50); 
       case 'maintenance':
-        return const Color(0xFFFF9800); // Orange
+        return const Color(0xFFFF9800); 
       case 'unavailable':
-        return const Color(0xFFF44336); // Red
+        return const Color(0xFFF44336); 
       default:
-        return const Color(0xFF9E9E9E); // Grey
+        return const Color(0xFF9E9E9E); 
     }
   }
 
-  // Get status text in Indonesian
+  
   String get statusText {
     switch (status.toLowerCase()) {
       case 'available':
@@ -90,19 +90,19 @@ class Room {
     );
   }
 
-  // Helper untuk parsing facilities - keep your existing logic
+  
   static List<String> _parseFacilities(dynamic facilitiesData) {
     if (facilitiesData == null) return [];
 
-    // Handle format {"$values": [...]}
+    
     if (facilitiesData is Map && facilitiesData.containsKey('\$values')) {
       return List<String>.from(facilitiesData['\$values'] ?? []);
     }
-    // Handle format langsung [...]
+    
     else if (facilitiesData is List) {
       return List<String>.from(facilitiesData);
     }
-    // Handle JSON string
+    
     else if (facilitiesData is String) {
       try {
         final decoded = json.decode(facilitiesData);
@@ -110,15 +110,15 @@ class Room {
           return List<String>.from(decoded);
         }
       } catch (e) {
-        // Jika string tidak bisa di-decode sebagai JSON,
-        // diasumsikan string itu sendiri adalah nama fasilitas tunggal.
-        // Anda perlu memastikan apakah ini perilaku yang diinginkan.
-        // Jika tidak, bisa dikembalikan [] atau log error.
+        
+        
+        
+        
         return [facilitiesData];
       }
     }
 
-    return []; // Default jika format tidak dikenali
+    return []; 
   }
 
   Map<String, dynamic> toJson() {
@@ -132,14 +132,14 @@ class Room {
       'photoUrl': photoUrl,
       'createdAt': createdAt.toIso8601String(),
       'facilities': {
-        '\$values': facilities, // Keep your existing format
+        '\$values': facilities, 
       },
       'latitude': latitude,
       'longitude': longitude,
     };
   }
 
-  // For API requests (multipart form data)
+  
   Map<String, String> toFormData() {
     return {
       'Name': name,

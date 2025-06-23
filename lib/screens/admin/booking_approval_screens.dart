@@ -75,7 +75,7 @@ class _AdminPeminjamanScreenState extends State<AdminPeminjamanScreen> with Tick
   Future<void> _markAsResolved(Booking booking) async {
     setState(() => _isLoading = true);
     try {
-      // Create updated booking object with 'done' status
+      
       final updatedBooking = Booking(
         id: booking.id,
         roomId: booking.roomId,
@@ -86,7 +86,7 @@ class _AdminPeminjamanScreenState extends State<AdminPeminjamanScreen> with Tick
         startTime: booking.startTime,
         endTime: booking.endTime,
         purpose: booking.purpose,
-        status: 'done', // Change status to done
+        status: 'done', 
         checkinTime: booking.checkinTime,
         checkoutTime: booking.checkoutTime,
         locationGps: booking.locationGps,
@@ -96,7 +96,7 @@ class _AdminPeminjamanScreenState extends State<AdminPeminjamanScreen> with Tick
         photoUrls: booking.photoUrls,
       );
 
-      // Use PUT /api/bookings/{id} to update the booking
+      
       bool success = await ApiService.updateBooking(updatedBooking);
       
       if (success) {
@@ -243,21 +243,21 @@ class _AdminPeminjamanScreenState extends State<AdminPeminjamanScreen> with Tick
   Widget _buildBookingContent(String status, int tabIndex) {
     List<Booking> filteredBookings;
     
-    // Filter berdasarkan status dan tab
+    
     switch (tabIndex) {
-      case 0: // Pengajuan
+      case 0: 
         filteredBookings = _bookings.where((b) => b.status == 'pending').toList();
         break;
-      case 1: // Foto
+      case 1: 
         filteredBookings = _bookings.where((b) => 
           b.status == 'approved' || b.status == 'in_use').toList();
         break;
-      case 2: // Masalah
+      case 2: 
         filteredBookings = _bookings.where((b) => 
           b.status == 'in_use' || 
           (b.adminNotes != null && b.adminNotes!.isNotEmpty)).toList();
         break;
-      case 3: // Selesai
+      case 3: 
         filteredBookings = _bookings.where((b) => b.status == 'done').toList();
         break;
       default:
@@ -345,7 +345,7 @@ class _AdminPeminjamanScreenState extends State<AdminPeminjamanScreen> with Tick
               children: [
                 Row(
                   children: [
-                    // Room Image
+                    
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: (booking.roomPhotoUrl != null && booking.roomPhotoUrl!.isNotEmpty)
@@ -370,7 +370,7 @@ class _AdminPeminjamanScreenState extends State<AdminPeminjamanScreen> with Tick
                     ),
                     const SizedBox(width: 16),
                     
-                    // Booking Info
+                    
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -443,7 +443,7 @@ class _AdminPeminjamanScreenState extends State<AdminPeminjamanScreen> with Tick
                       ),
                     ),
                     
-                    // Status or Action Indicator
+                    
                     Icon(
                       Icons.chevron_right,
                       color: Colors.grey[400],
@@ -451,9 +451,9 @@ class _AdminPeminjamanScreenState extends State<AdminPeminjamanScreen> with Tick
                   ],
                 ),
                 
-                // Tab specific actions
-                if (tabIndex == 1) ..._buildFotoActions(booking), // Tab Foto
-                if (tabIndex == 2) ..._buildMasalahActions(booking), // Tab Masalah
+                
+                if (tabIndex == 1) ..._buildFotoActions(booking), 
+                if (tabIndex == 2) ..._buildMasalahActions(booking), 
               ],
             ),
           ),
@@ -722,7 +722,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Room Info Card
+            
             Container(
               margin: const EdgeInsets.all(20),
               padding: const EdgeInsets.all(16),
@@ -817,7 +817,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
               ),
             ),
 
-            // Detail Peminjaman
+            
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 20),
               padding: const EdgeInsets.all(20),
@@ -864,7 +864,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
 
             const SizedBox(height: 20),
 
-            // Alasan Peminjaman
+            
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 20),
               padding: const EdgeInsets.all(20),
@@ -904,7 +904,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
 
             const SizedBox(height: 20),
 
-            // Alasan Penolakan (if rejected)
+            
             if (widget.booking.status == 'rejected') ...[
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -940,7 +940,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
               const SizedBox(height: 20),
             ],
 
-            // Action Buttons - Only show for pending status
+            
             if (widget.booking.status == 'pending') ...[
               Padding(
                 padding: const EdgeInsets.all(20),
