@@ -469,7 +469,7 @@ class _AdminRoomManagementScreenState extends State<AdminRoomManagementScreen> {
   }
 
   void _openMapPicker() async {
-    LatLng defaultLatLng = const LatLng(-8.165766, 113.716330); // Jember coordinates
+    LatLng defaultLatLng = const LatLng(-8.165766, 113.716330); 
     LatLng selectedLatLng = _latitude != null && _longitude != null 
         ? LatLng(_latitude!, _longitude!) 
         : defaultLatLng;
