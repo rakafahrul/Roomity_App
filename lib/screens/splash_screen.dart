@@ -43,29 +43,21 @@ class _SplashScreenState extends State<SplashScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Spacer(),
-              
-              // Logo lingkaran
-              Container(
+
+              // Ganti dengan logo gambar
+              SizedBox(
                 width: 100,
                 height: 100,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF6B8AC9), 
-                  shape: BoxShape.circle,
-                ),
-                child: const Center(
-                  child: Text(
-                    'Logo',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                child: ClipOval(
+                  child: Image.asset(
+                    'assets/images/Logo Roomity.png',
+                    fit: BoxFit.cover,
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 30),
-              
+
               // Teks Roomity
               const Text(
                 'Roomity',
@@ -75,9 +67,9 @@ class _SplashScreenState extends State<SplashScreen> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              
+
               const SizedBox(height: 8),
-              
+
               // tagline
               const Text(
                 'Memudahkan peminjaman ruang rapat!',
@@ -93,4 +85,5 @@ class _SplashScreenState extends State<SplashScreen> {
       ),
     );
   }
+
 }

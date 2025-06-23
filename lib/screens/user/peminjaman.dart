@@ -15,22 +15,25 @@ class PeminjamanScreen extends StatefulWidget {
   State<PeminjamanScreen> createState() => _PeminjamanScreenState();
 }
 
-class _PeminjamanScreenState extends State<PeminjamanScreen> {
-  String selectedTab = 'pending'; // default: Pengajuan
+class _PeminjamanScreenState extends State<PeminjamanScreen> with TickerProviderStateMixin {
+  late TabController _tabController;
   List<Booking> _bookings = [];
   bool _isLoading = false;
 
-  final tabMap = {
-    'pending': 'Pengajuan',
-    'approved': 'Disetujui',
-    'in_use': 'Pemakaian',
-    'done': 'Selesai',
-  };
+  final List<String> _tabs = ['Pengajuan', 'Disetujui', 'Pemakaian', 'Selesai'];
+  final List<String> _statusMap = ['pending', 'approved', 'in_use', 'done'];
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: _tabs.length, vsync: this);
     _loadBookings();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadBookings() async {
@@ -64,13 +67,13 @@ class _PeminjamanScreenState extends State<PeminjamanScreen> {
   String _getBookingLocation(Booking booking) {
     final json = booking.toJson();
     if (json.containsKey('roomLocation')) {
-      return json['roomLocation'] ?? 'Lokasi tidak tersedia';
+      return json['roomLocation'] ?? 'Gedung 24A, Ilmu Komputer';
     } else if (json.containsKey('room_location')) {
-      return json['room_location'] ?? 'Lokasi tidak tersedia';
+      return json['room_location'] ?? 'Gedung 24A, Ilmu Komputer';
     } else if (json.containsKey('location')) {
-      return json['location'] ?? 'Lokasi tidak tersedia';
+      return json['location'] ?? 'Gedung 24A, Ilmu Komputer';
     }
-    return 'Lokasi tidak tersedia';
+    return 'Gedung 24A, Ilmu Komputer';
   }
 
   //  koordinat ruangan
@@ -98,7 +101,9 @@ class _PeminjamanScreenState extends State<PeminjamanScreen> {
     return null;
   }
 
-  Future<void> _konfirmasiKehadiran(Booking b) async {
+  Future<void> _konfirmasiKehadiran(Booking booking) async {
+    setState(() => _isLoading = true);
+    
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
@@ -122,14 +127,14 @@ class _PeminjamanScreenState extends State<PeminjamanScreen> {
 
       Position pos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
 
-      double roomLat = _getBookingLatitude(b) ?? -8.165922026829602;
-      double roomLng = _getBookingLongitude(b) ?? 113.7168622702779; //-8.165922026829602, 113.7168622702779
+      double roomLat = _getBookingLatitude(booking) ?? -8.165922026829602;
+      double roomLng = _getBookingLongitude(booking) ?? 113.7168622702779;
       double distance = Geolocator.distanceBetween(pos.latitude, pos.longitude, roomLat, roomLng);
 
       if (distance <= 980) {
         // konfirmasi kehadiran
         await ApiService.confirmAttendance(
-          b.id,
+          booking.id,
           "${pos.latitude},${pos.longitude}",
         );
         
@@ -161,6 +166,8 @@ class _PeminjamanScreenState extends State<PeminjamanScreen> {
           ),
         );
       }
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -174,6 +181,15 @@ class _PeminjamanScreenState extends State<PeminjamanScreen> {
     if (result == true) {
       _refreshBookings(); 
     }
+  }
+
+  void _showBookingDetail(Booking booking) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => UserBookingDetailScreen(booking: booking),
+      ),
+    ).then((_) => _refreshBookings());
   }
 
   @override
@@ -190,77 +206,86 @@ class _PeminjamanScreenState extends State<PeminjamanScreen> {
             );
           },
         ),
-        title: const Text('Peminjaman', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Peminjaman',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: _tabs.map((tab) => Tab(text: tab)).toList(),
+          labelColor: const Color(0xFF192965),
+          unselectedLabelColor: Colors.grey,
+          indicatorColor: const Color(0xFF192965),
+          indicatorWeight: 3,
+          labelStyle: const TextStyle(fontWeight: FontWeight.w600),
+          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal),
+        ),
       ),
-      body: Column(
-        children: [
-          // Tab Bar
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: tabMap.entries.map((e) {
-                final selected = selectedTab == e.key;
-                return GestureDetector(
-                  onTap: () => setState(() => selectedTab = e.key),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: selected ? Colors.white : Colors.grey[100],
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: selected
-                          ? [const BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2))]
-                          : [],
-                    ),
-                    child: Text(
-                      e.value,
-                      style: TextStyle(
-                        color: selected ? const Color(0xFF192965) : Colors.black38,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-          
-          // Content
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: _refreshBookings,
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _buildBookingsList(),
-            ),
-          ),
-        ],
+      body: TabBarView(
+        controller: _tabController,
+        children: _tabs.asMap().entries.map((entry) {
+          final index = entry.key;
+          final status = _statusMap[index];
+          return _buildBookingList(status, index);
+        }).toList(),
       ),
       backgroundColor: const Color(0xFFF7F7FA),
     );
   }
 
-  Widget _buildBookingsList() {
-    final filteredBookings = _bookings.where((b) => b.status == selectedTab).toList();
-    
+  Widget _buildBookingList(String status, int tabIndex) {
+    return RefreshIndicator(
+      onRefresh: _refreshBookings,
+      child: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _buildBookingContent(status, tabIndex),
+    );
+  }
+
+  Widget _buildBookingContent(String status, int tabIndex) {
+    List<Booking> filteredBookings = _bookings.where((b) => b.status == status).toList();
+
     if (filteredBookings.isEmpty) {
+      String emptyMessage;
+      IconData emptyIcon;
+      switch (tabIndex) {
+        case 0:
+          emptyMessage = 'Belum ada pengajuan peminjaman';
+          emptyIcon = Icons.pending_actions;
+          break;
+        case 1:
+          emptyMessage = 'Belum ada peminjaman yang disetujui';
+          emptyIcon = Icons.check_circle_outline;
+          break;
+        case 2:
+          emptyMessage = 'Belum ada peminjaman yang sedang digunakan';
+          emptyIcon = Icons.room_outlined;
+          break;
+        case 3:
+          emptyMessage = 'Belum ada peminjaman yang selesai';
+          emptyIcon = Icons.done_all;
+          break;
+        default:
+          emptyMessage = 'Belum ada peminjaman';
+          emptyIcon = Icons.event_note;
+      }
+
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.event_note,
+              emptyIcon,
               size: 64,
               color: Colors.grey[400],
             ),
             const SizedBox(height: 16),
             Text(
-              'Belum ada peminjaman ${tabMap[selectedTab]?.toLowerCase()}',
+              emptyMessage,
               style: TextStyle(
                 fontSize: 16,
                 color: Colors.grey[600],
@@ -278,27 +303,22 @@ class _PeminjamanScreenState extends State<PeminjamanScreen> {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.all(16),
       itemCount: filteredBookings.length,
-      itemBuilder: (context, i) => _bookingCard(context, filteredBookings[i]),
+      itemBuilder: (context, index) {
+        return _buildBookingCard(filteredBookings[index], tabIndex);
+      },
     );
   }
 
-  Widget _bookingCard(BuildContext context, Booking b) {
+  Widget _buildBookingCard(Booking booking, int tabIndex) {
     String formatTime(String time) {
       try {
         if (time.contains(':')) {
-          final t = TimeOfDay(
-            hour: int.parse(time.split(':')[0]),
-            minute: int.parse(time.split(':')[1]),
-          );
-          final h = t.hour.toString().padLeft(2, '0');
-          final m = t.minute.toString().padLeft(2, '0');
-          return '$h.$m';
-        }
-        if (time.contains('AM') || time.contains('PM')) {
-          final dt = DateFormat.jm().parse(time);
-          return DateFormat('HH.mm').format(dt);
+          final parts = time.split(':');
+          final hour = int.parse(parts[0]);
+          final minute = int.parse(parts[1]);
+          return '${hour.toString().padLeft(2, '0')}.${minute.toString().padLeft(2, '0')}';
         }
         return time;
       } catch (e) {
@@ -306,254 +326,689 @@ class _PeminjamanScreenState extends State<PeminjamanScreen> {
       }
     }
 
-    // Get room photo URL with fallback
-    String getPhotoUrl() {
-      if (b.roomPhotoUrl != null && b.roomPhotoUrl!.isNotEmpty) {
-        return b.roomPhotoUrl!;
-      }
-      return 'https://images.unsplash.com/photo-1515378791036-0648a3ef77b2';
-    }
-
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.black12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: InkWell(
+          onTap: () => _showBookingDetail(booking),
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    // Room Image
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: (booking.roomPhotoUrl != null && booking.roomPhotoUrl!.isNotEmpty)
+                          ? Image.network(
+                              booking.roomPhotoUrl!,
+                              width: 80,
+                              height: 80,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) => Container(
+                                width: 80,
+                                height: 80,
+                                color: Colors.grey[300],
+                                child: Icon(Icons.meeting_room, color: Colors.grey[600]),
+                              ),
+                            )
+                          : Image.asset(
+                              'assets/images/default.jpeg',
+                              width: 80,
+                              height: 80,
+                              fit: BoxFit.cover,
+                            ),
+                    ),
+                    const SizedBox(width: 16),
+                    
+                    // Booking Info
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            booking.roomName,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.location_on_rounded,
+                                size: 14,
+                                color: Colors.grey[600],
+                              ),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: Text(
+                                  _getBookingLocation(booking),
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 12,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.calendar_today,
+                                size: 14,
+                                color: Colors.grey[600],
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                DateFormat('dd MMM yyyy').format(booking.bookingDate),
+                                style: TextStyle(
+                                  color: Colors.grey[700],
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.access_time,
+                                size: 14,
+                                color: Colors.grey[600],
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${formatTime(booking.startTime)} - ${formatTime(booking.endTime)} WIB',
+                                style: TextStyle(
+                                  color: Colors.grey[700],
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    
+                    // Status or Action Indicator
+                    Icon(
+                      Icons.chevron_right,
+                      color: Colors.grey[400],
+                    ),
+                  ],
+                ),
+                
+                // Tab specific actions
+                if (tabIndex == 0) ..._buildPengajuanActions(booking), // Tab Pengajuan
+                if (tabIndex == 1) ..._buildDisetujuiActions(booking), // Tab Disetujui
+                if (tabIndex == 2) ..._buildPemakaianActions(booking), // Tab Pemakaian
+                if (tabIndex == 3) ..._buildSelesaiActions(booking), // Tab Selesai
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _buildPengajuanActions(Booking booking) {
+    return [
+      const SizedBox(height: 16),
+      const Divider(),
+      const SizedBox(height: 12),
+      Row(
+        children: [
+          Icon(Icons.pending_actions, color: Colors.orange[600], size: 20),
+          const SizedBox(width: 8),
+          const Expanded(
+            child: Text(
+              'Menunggu persetujuan admin',
+              style: TextStyle(
+                color: Colors.orange,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.orange[100],
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Text(
+              'PENDING',
+              style: TextStyle(
+                color: Colors.orange[700],
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    ];
+  }
+
+  List<Widget> _buildDisetujuiActions(Booking booking) {
+    return [
+      const SizedBox(height: 16),
+      const Divider(),
+      const SizedBox(height: 12),
+      Row(
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Foto ruangan
-              ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: Image.network(
-                  getPhotoUrl(),
-                  width: 90,
-                  height: 90,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    width: 90,
-                    height: 90,
-                    color: Colors.grey[300],
-                    child: Icon(Icons.meeting_room, color: Colors.grey[600]),
-                  ),
-                ),
+          Icon(Icons.location_on, color: Colors.blue[600], size: 20),
+          const SizedBox(width: 8),
+          const Expanded(
+            child: Text(
+              'Konfirmasi kehadiran di lokasi',
+              style: TextStyle(
+                color: Colors.blue,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
               ),
-              const SizedBox(width: 14),
-              // Info booking
-              Expanded(
+            ),
+          ),
+          ElevatedButton.icon(
+            onPressed: _isLoading ? null : () => _konfirmasiKehadiran(booking),
+            icon: _isLoading 
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                )
+              : const Icon(Icons.location_on, size: 16),
+            label: const Text('Check-in'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF192965),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 8),
+      Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.blue[50],
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: const [
+            Icon(Icons.info_outline, color: Colors.blue, size: 16),
+            SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                'Konfirmasi kehadiran maksimal 1 jam setelah jadwal dimulai',
+                style: TextStyle(color: Colors.blue, fontSize: 12),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ];
+  }
+
+  List<Widget> _buildPemakaianActions(Booking booking) {
+    return [
+      const SizedBox(height: 16),
+      const Divider(),
+      const SizedBox(height: 12),
+      Row(
+        children: [
+          Icon(Icons.camera_alt, color: Colors.green[600], size: 20),
+          const SizedBox(width: 8),
+          const Expanded(
+            child: Text(
+              'Upload foto pertanggungjawaban',
+              style: TextStyle(
+                color: Colors.green,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          ElevatedButton.icon(
+            onPressed: () => _openPertanggungjawaban(booking),
+            icon: const Icon(Icons.camera_alt, size: 16),
+            label: const Text('Upload'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 8),
+      Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.orange[50],
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: const [
+            Icon(Icons.warning_outlined, color: Colors.orange, size: 16),
+            SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                'Upload foto maksimal 3 hari setelah menggunakan ruangan',
+                style: TextStyle(color: Colors.orange, fontSize: 12),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ];
+  }
+
+  List<Widget> _buildSelesaiActions(Booking booking) {
+    return [
+      const SizedBox(height: 16),
+      const Divider(),
+      const SizedBox(height: 12),
+      Row(
+        children: [
+          Icon(Icons.check_circle, color: Colors.green[600], size: 20),
+          const SizedBox(width: 8),
+          const Expanded(
+            child: Text(
+              'Peminjaman selesai',
+              style: TextStyle(
+                color: Colors.green,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.green[100],
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Text(
+              'SELESAI',
+              style: TextStyle(
+                color: Colors.green[700],
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    ];
+  }
+}
+
+// ✅ USER BOOKING DETAIL SCREEN
+class UserBookingDetailScreen extends StatelessWidget {
+  final Booking booking;
+
+  const UserBookingDetailScreen({super.key, required this.booking});
+
+  String _getBookingLocation(Booking booking) {
+    return 'Gedung 24A, Ilmu Komputer';
+  }
+
+  String formatTime(String time) {
+    try {
+      if (time.contains(':')) {
+        final parts = time.split(':');
+        final hour = int.parse(parts[0]);
+        final minute = int.parse(parts[1]);
+        return '${hour.toString().padLeft(2, '0')}.${minute.toString().padLeft(2, '0')}';
+      }
+      return time;
+    } catch (e) {
+      return time;
+    }
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return Colors.orange;
+      case 'approved':
+        return Colors.blue;
+      case 'in_use':
+        return Colors.green;
+      case 'done':
+        return Colors.green;
+      case 'rejected':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  String _getStatusText(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'Menunggu Persetujuan';
+      case 'approved':
+        return 'Disetujui';
+      case 'in_use':
+        return 'Sedang Digunakan';
+      case 'done':
+        return 'Selesai';
+      case 'rejected':
+        return 'Ditolak';
+      default:
+        return status.toUpperCase();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Detail Peminjaman',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Room Info Card
+            Container(
+              margin: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: (booking.roomPhotoUrl != null && booking.roomPhotoUrl!.isNotEmpty)
+                        ? Image.network(
+                            booking.roomPhotoUrl!,
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Container(
+                              width: 80,
+                              height: 80,
+                              color: Colors.grey[300],
+                              child: Icon(Icons.meeting_room, color: Colors.grey[600]),
+                            ),
+                          )
+                        : Image.asset(
+                            'assets/images/default.jpeg',
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                          ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          booking.roomName,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.location_on_rounded,
+                              size: 16,
+                              color: Colors.grey[600],
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                _getBookingLocation(booking),
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 14,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: _getStatusColor(booking.status).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            _getStatusText(booking.status),
+                            style: TextStyle(
+                              color: _getStatusColor(booking.status),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Detail Peminjaman
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Detail Peminjaman',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildDetailRow(
+                    icon: Icons.calendar_today,
+                    label: 'Tanggal',
+                    value: DateFormat('dd MMM yyyy').format(booking.bookingDate),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildDetailRow(
+                    icon: Icons.access_time,
+                    label: 'Waktu',
+                    value: '${formatTime(booking.startTime)} - ${formatTime(booking.endTime)} WIB',
+                  ),
+                  const SizedBox(height: 16),
+                  _buildDetailRow(
+                    icon: Icons.confirmation_number,
+                    label: 'ID Booking',
+                    value: booking.id.toString(),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Alasan Peminjaman
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Alasan Peminjaman',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    booking.purpose,
+                    style: TextStyle(
+                      color: Colors.grey[700],
+                      fontSize: 14,
+                      height: 1.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Admin Notes (if rejected)
+            if (booking.status == 'rejected' && booking.adminNotes != null) ...[
+              const SizedBox(height: 20),
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.red[50],
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.red[200]!),
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    const Text(
+                      'Alasan Penolakan',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Colors.red,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     Text(
-                      b.roomName,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                    ),
-                    const SizedBox(height: 2),
-                    Row(
-                      children: [
-                        const Icon(Icons.location_on_rounded, size: 16, color: Colors.black26),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            _getBookingLocation(b),
-                            style: const TextStyle(color: Colors.black45, fontSize: 14),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        const Icon(Icons.calendar_today_rounded, size: 18, color: Colors.black45),
-                        const SizedBox(width: 6),
-                        Text(
-                          DateFormat('dd MMM yyyy').format(b.bookingDate),
-                          style: const TextStyle(fontSize: 15, color: Colors.black87),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        const Icon(Icons.access_time_rounded, size: 18, color: Colors.black45),
-                        const SizedBox(width: 6),
-                        Text(
-                          '${formatTime(b.startTime)}–${formatTime(b.endTime)} WIB',
-                          style: const TextStyle(fontSize: 15, color: Colors.black87),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        const Icon(Icons.description, size: 16, color: Colors.black45),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            b.purpose,
-                            style: const TextStyle(color: Colors.black45, fontSize: 14),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
+                      booking.adminNotes!,
+                      style: const TextStyle(
+                        color: Colors.red,
+                        fontSize: 14,
+                        height: 1.5,
+                      ),
                     ),
                   ],
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 12),
-          
-          // Status badge & tombol aksi
-          _buildStatusContent(b),
-        ],
+
+            const SizedBox(height: 20),
+          ],
+        ),
       ),
+      backgroundColor: const Color(0xFFF7F7FA),
     );
   }
 
-  Widget _buildStatusContent(Booking b) {
-    switch (b.status) {
-      case 'pending':
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: Colors.orange[100],
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: const Text(
-            'Menunggu Persetujuan',
-            style: TextStyle(color: Colors.orange, fontWeight: FontWeight.w600),
-          ),
-        );
-
-      case 'approved':
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () => _konfirmasiKehadiran(b),
-                icon: const Icon(Icons.location_on, size: 18),
-                label: const Text('Konfirmasi Kehadiran'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF192965),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  elevation: 0,
+  Widget _buildDetailRow({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          icon,
+          size: 20,
+          color: Colors.grey[600],
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.blue[50],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: const [
-                  Icon(Icons.info_outline, color: Colors.blue, size: 16),
-                  SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      'Jika tidak melakukan konfirmasi kehadiran > 1 jam dari jadwal, maka peminjaman otomatis dianggap dibatalkan.',
-                      style: TextStyle(color: Colors.blue, fontSize: 12),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        );
-
-      case 'in_use':
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () => _openPertanggungjawaban(b),
-                icon: const Icon(Icons.camera_alt, size: 18),
-                label: const Text('Pertanggungjawaban'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.yellow[700],
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  elevation: 0,
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: const TextStyle(
+                  color: Colors.black87,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.orange[50],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: const [
-                  Icon(Icons.info_outline, color: Colors.orange, size: 16),
-                  SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      'Jika tidak melakukan pertanggungjawaban > 3 hari setelah menggunakan ruang, maka peminjam tidak akan bisa meminjam ruangan kembali di kemudian hari.',
-                      style: TextStyle(color: Colors.orange, fontSize: 12),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        );
-
-      case 'done':
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: Colors.green[100],
-            borderRadius: BorderRadius.circular(16),
+            ],
           ),
-          child: const Text(
-            'Selesai',
-            style: TextStyle(color: Color(0xFF4DD18B), fontWeight: FontWeight.w600),
-          ),
-        );
-
-      default:
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: Colors.grey[100],
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Text(
-            b.status.toUpperCase(),
-            style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.w600),
-          ),
-        );
-    }
+        ),
+      ],
+    );
   }
 }
 
-// ✅ HALAMAN PERTANGGUNGJAWABAN - CAMERA ONLY FIXED
+// ✅ HALAMAN PERTANGGUNGJAWABAN - CAMERA ONLY (Keep as is)
 class PertanggungjawabanScreen extends StatefulWidget {
   final Booking booking;
   const PertanggungjawabanScreen({super.key, required this.booking});
@@ -1145,319 +1600,3 @@ class _PertanggungjawabanScreenState extends State<PertanggungjawabanScreen> {
     );
   }
 }
-// class PertanggungjawabanScreen extends StatefulWidget {
-//   final Booking booking;
-//   const PertanggungjawabanScreen({super.key, required this.booking});
-
-//   @override
-//   State<PertanggungjawabanScreen> createState() => _PertanggungjawabanScreenState();
-// }
-
-// class _PertanggungjawabanScreenState extends State<PertanggungjawabanScreen> {
-//   XFile? photo;
-//   bool loading = false;
-
-//   Future<void> pickPhotoFromCamera() async {
-//     try {
-//       final picker = ImagePicker();
-      
-//       // ✅ Konfirmasi sebelum membuka kamera
-//       final confirm = await showDialog<bool>(
-//         context: context,
-//         builder: (BuildContext context) {
-//           return AlertDialog(
-//             title: const Text('Foto Ruangan'),
-//             content: const Text('Ambil foto kondisi ruangan setelah digunakan?'),
-//             actions: [
-//               TextButton(
-//                 child: const Text('Batal'),
-//                 onPressed: () => Navigator.pop(context, false),
-//               ),
-//               ElevatedButton.icon(
-//                 icon: const Icon(Icons.camera_alt),
-//                 label: const Text('Buka Kamera'),
-//                 onPressed: () => Navigator.pop(context, true),
-//                 style: ElevatedButton.styleFrom(
-//                   backgroundColor: const Color(0xFF192965),
-//                   foregroundColor: Colors.white,
-//                 ),
-//               ),
-//             ],
-//           );
-//         },
-//       );
-
-//       if (confirm != true) return;
-
-//       // ✅ Buka kamera langsung
-//       final XFile? capturedPhoto = await picker.pickImage(
-//         source: ImageSource.camera,
-//         imageQuality: 80,
-//         maxWidth: 1024,
-//         maxHeight: 1024,
-//         preferredCameraDevice: CameraDevice.rear,
-//       );
-      
-//       if (capturedPhoto != null) {
-//         setState(() {
-//           photo = capturedPhoto;
-//         });
-        
-//         ScaffoldMessenger.of(context).showSnackBar(
-//           const SnackBar(
-//             content: Text('Foto berhasil diambil'),
-//             backgroundColor: Colors.green,
-//             duration: const Duration(seconds: 2),
-//           ),
-//         );
-//       }
-//     } catch (e) {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         SnackBar(
-//           content: Text('Gagal mengambil foto: $e'),
-//           backgroundColor: Colors.red,
-//         ),
-//       );
-//     }
-//   }
-
-//   Future<void> submit() async {
-//     if (photo == null) {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         const SnackBar(
-//           content: Text('Foto harus diisi!'),
-//           backgroundColor: Colors.orange,
-//         ),
-//       );
-//       return;
-//     }
-    
-//     final confirm = await showDialog<bool>(
-//       context: context,
-//       builder: (BuildContext context) {
-//         return AlertDialog(
-//           title: const Text('Konfirmasi'),
-//           content: const Text('Kirim pertanggungjawaban sekarang?'),
-//           actions: [
-//             TextButton(
-//               child: const Text('Batal'),
-//               onPressed: () => Navigator.pop(context, false),
-//             ),
-//             ElevatedButton(
-//               child: const Text('Kirim'),
-//               onPressed: () => Navigator.pop(context, true),
-//               style: ElevatedButton.styleFrom(
-//                 backgroundColor: const Color(0xFF192965),
-//                 foregroundColor: Colors.white,
-//               ),
-//             ),
-//           ],
-//         );
-//       },
-//     );
-
-//     if (confirm != true) return;
-    
-//     setState(() => loading = true);
-    
-//     try {
-//       await ApiService.uploadPertanggungjawaban(
-//         bookingId: widget.booking.id,
-//         photo: photo!,
-//       );
-      
-//       if (mounted) {
-//         ScaffoldMessenger.of(context).showSnackBar(
-//           const SnackBar(
-//             content: Text('Pertanggungjawaban berhasil dikirim'),
-//             backgroundColor: Colors.green,
-//           ),
-//         );
-//         Navigator.pop(context, true);
-//       }
-//     } catch (e) {
-//       if (mounted) {
-//         ScaffoldMessenger.of(context).showSnackBar(
-//           SnackBar(
-//             content: Text('Gagal mengirim pertanggungjawaban: $e'),
-//             backgroundColor: Colors.red,
-//           ),
-//         );
-//       }
-//     } finally {
-//       setState(() => loading = false);
-//     }
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text('Pertanggungjawaban'),
-//         backgroundColor: Colors.white,
-//         foregroundColor: Colors.black,
-//         elevation: 0,
-//       ),
-//       body: Padding(
-//         padding: const EdgeInsets.all(24.0),
-//         child: Column(
-//           crossAxisAlignment: CrossAxisAlignment.start,
-//           children: [
-//             // Header info
-//             Container(
-//               padding: const EdgeInsets.all(16),
-//               decoration: BoxDecoration(
-//                 color: Colors.blue[50],
-//                 borderRadius: BorderRadius.circular(12),
-//               ),
-//               child: Column(
-//                 crossAxisAlignment: CrossAxisAlignment.start,
-//                 children: [
-//                   Text(
-//                     'Ruangan: ${widget.booking.roomName}',
-//                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-//                   ),
-//                   const SizedBox(height: 4),
-//                   Text(
-//                     'Tanggal: ${DateFormat('dd MMM yyyy').format(widget.booking.bookingDate)}',
-//                     style: const TextStyle(color: Colors.grey),
-//                   ),
-//                 ],
-//               ),
-//             ),
-            
-//             const SizedBox(height: 24),
-            
-//             const Text(
-//               'Ambil foto ruangan setelah digunakan',
-//               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-//             ),
-//             const SizedBox(height: 8),
-//             const Text(
-//               'Gunakan kamera untuk mengambil foto kondisi ruangan setelah digunakan',
-//               style: TextStyle(color: Colors.grey),
-//             ),
-            
-//             const SizedBox(height: 24),
-            
-//             // Photo area
-//             GestureDetector(
-//               onTap: pickPhotoFromCamera,
-//               child: Center(
-//                 child: Container(
-//                   height: 200,
-//                   width: double.infinity,
-//                   decoration: BoxDecoration(
-//                     border: Border.all(color: photo != null ? Colors.green : Colors.grey[300]!),
-//                     borderRadius: BorderRadius.circular(12),
-//                     color: Colors.grey[50],
-//                     image: photo != null
-//                       ? DecorationImage(
-//                           image: FileImage(File(photo!.path)), 
-//                           fit: BoxFit.cover
-//                         )
-//                       : null,
-//                   ),
-//                   child: photo == null
-//                     ? Column(
-//                         mainAxisAlignment: MainAxisAlignment.center,
-//                         children: [
-//                           Icon(Icons.camera_alt, size: 48, color: Colors.grey[600]),
-//                           const SizedBox(height: 16),
-//                           Text(
-//                             'Ambil Foto',
-//                             style: TextStyle(
-//                               fontWeight: FontWeight.w600,
-//                               color: Colors.grey[700],
-//                               fontSize: 18,
-//                             ),
-//                           ),
-//                           const SizedBox(height: 8),
-//                           Text(
-//                             'Tap untuk membuka kamera',
-//                             style: TextStyle(
-//                               fontSize: 14,
-//                               color: Colors.grey[500],
-//                             ),
-//                           ),
-//                         ],
-//                       )
-//                     : Container(
-//                         decoration: BoxDecoration(
-//                           borderRadius: BorderRadius.circular(12),
-//                           color: Colors.black.withOpacity(0.3),
-//                         ),
-//                         child: const Center(
-//                           child: Icon(
-//                             Icons.check_circle,
-//                             color: Colors.white,
-//                             size: 48,
-//                           ),
-//                         ),
-//                       ),
-//                 ),
-//               ),
-//             ),
-            
-//             // Info tambahan
-//             const SizedBox(height: 16),
-//             Container(
-//               padding: const EdgeInsets.all(12),
-//               decoration: BoxDecoration(
-//                 color: Colors.amber[50],
-//                 borderRadius: BorderRadius.circular(8),
-//               ),
-//               child: Row(
-//                 children: const [
-//                   Icon(Icons.info_outline, color: Colors.amber, size: 16),
-//                   SizedBox(width: 8),
-//                   Expanded(
-//                     child: Text(
-//                       'Pastikan foto jelas dan kondisi ruangan terlihat dengan baik',
-//                       style: TextStyle(color: Colors.amber, fontSize: 12),
-//                     ),
-//                   ),
-//                 ],
-//               ),
-//             ),
-            
-//             const Spacer(),
-            
-//             // Submit button
-//             SizedBox(
-//               width: double.infinity,
-//               child: ElevatedButton(
-//                 onPressed: loading ? null : submit,
-//                 style: ElevatedButton.styleFrom(
-//                   backgroundColor: const Color(0xFF192965),
-//                   foregroundColor: Colors.white,
-//                   padding: const EdgeInsets.symmetric(vertical: 16),
-//                   shape: RoundedRectangleBorder(
-//                     borderRadius: BorderRadius.circular(12),
-//                   ),
-//                   elevation: 0,
-//                 ),
-//                 child: loading
-//                   ? const SizedBox(
-//                       height: 20,
-//                       width: 20,
-//                       child: CircularProgressIndicator(
-//                         color: Colors.white,
-//                         strokeWidth: 2,
-//                       ),
-//                     )
-//                   : const Text(
-//                       'Kirim Pertanggungjawaban',
-//                       style: TextStyle(
-//                         fontSize: 16,
-//                         fontWeight: FontWeight.w600,
-//                       ),
-//                     ),
-//               ),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }

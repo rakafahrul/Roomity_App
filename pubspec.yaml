@@ -80,6 +80,7 @@ flutter:
   assets:
     - assets/images/profile.png
     - assets/images/default.jpeg
+    - assets/images/Logo Roomity.png
 
   #   - images/a_dot_ham.jpeg
 
